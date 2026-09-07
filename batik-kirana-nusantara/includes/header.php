@@ -24,7 +24,7 @@ $halaman_ini = basename($_SERVER['SCRIPT_NAME']);
       <li><a href="<?= $base_url ?? '' ?>produk.php" class="<?= in_array($halaman_ini, ['produk.php', 'produk_detail.php']) ? 'aktif' : '' ?>">Produk</a></li>
       <li><a href="<?= $base_url ?? '' ?>tentang.php" class="<?= $halaman_ini === 'tentang.php' ? 'aktif' : '' ?>">Tentang</a></li>
       <li><a href="<?= $base_url ?? '' ?>kontak.php" class="<?= $halaman_ini === 'kontak.php' ? 'aktif' : '' ?>">Kontak</a></li>
-      <li><a href="../portfolio-febri/index.html" class="nav-back">↩ Web Profil</a></li>
+      <li><a href="https://febri-portofolio.netlify.app/" class="nav-back">↩ Web Profil</a></li>
     </ul>
   </div>
 </nav>
