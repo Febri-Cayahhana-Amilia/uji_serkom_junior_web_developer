@@ -17,7 +17,6 @@
       <h4>Perusahaan</h4>
       <a href="<?= $base_url ?? '' ?>tentang.php">Tentang Kami</a>
       <a href="<?= $base_url ?? '' ?>kontak.php">Kontak</a>
-      <a href="<?= $base_url ?? '' ?>admin/login.php">Login Admin</a>
     </div>
     
     <div class="footer-col">
