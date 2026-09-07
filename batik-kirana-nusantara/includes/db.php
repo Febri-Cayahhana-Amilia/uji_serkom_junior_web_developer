@@ -3,11 +3,11 @@
  * Koneksi database PostgreSQL — sesuaikan jika konfigurasi kamu berbeda.
  */
 
-$db_host = 'localhost';
-$db_port = '5432';
-$db_name = 'batik_kirana_nusantara';
+$db_host = 'altaria.proxy.rlwy.net';
+$db_port = '35741';
+$db_name = 'railway';
 $db_user = 'postgres';
-$db_pass = 'postgres'; // ganti sesuai password pgAdmin/PostgreSQL kamu
+$db_pass = 'cBUFYmbFZEzbZiaaHdtmWYDfCDNbqTYT'; // ganti sesuai password pgAdmin/PostgreSQL kamu
 
 try {
     $koneksi = new PDO(
@@ -20,3 +20,4 @@ try {
     die('Koneksi database gagal: ' . $e->getMessage() .
         '<br>Pastikan PostgreSQL aktif dan database "batik_kirana" sudah dibuat dari file database/batik_kirana.sql, dan cek username/password di includes/db.php');
 }
+
