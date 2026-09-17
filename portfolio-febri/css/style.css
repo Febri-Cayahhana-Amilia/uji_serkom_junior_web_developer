@@ -11,13 +11,14 @@
   --mono:"JetBrains Mono", monospace;
 }
 *{box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth; overflow-x:hidden;}
 body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
   font-family:"Work Sans", sans-serif;
   line-height:1.6;
+  overflow-x:hidden;
 }
 a{color:inherit;}
 h1,h2,h3{margin:0 0 .4em; color:var(--indigo);}
@@ -221,4 +222,25 @@ footer{padding:2.4rem 0 3rem;}
   .info-grid{grid-template-columns:1fr;}
   .artikel-list{grid-template-columns:1fr;}
   .kegiatan-galeri{grid-template-columns:repeat(2, 1fr);}
+}
+
+@media (max-width:600px){
+  .sidebar{padding:1.5rem 1.2rem;}
+  main{padding:2rem 1.1rem;}
+  .hero h1{font-size:1.9rem;}
+  .hero .lede{max-width:none;}
+  .hero-actions{flex-direction:column; align-items:stretch;}
+  .hero-actions .btn{text-align:center;}
+  .avatar-circle{width:130px; height:130px;}
+  .proyek-title{flex-wrap:wrap; gap:.5rem;}
+  .yaml-row{flex-direction:column; gap:.15rem;}
+  .yaml-key{min-width:0;}
+  .skill-item{grid-template-columns:1fr; gap:.4rem;}
+  .kegiatan-galeri{grid-template-columns:1fr;}
+  .footer-top{flex-direction:column; align-items:flex-start;}
+  .footer-bottom{flex-direction:column; gap:.2rem;}
+  .contact-chips{flex-direction:column; align-items:stretch;}
+  .prose{max-width:none;}
+  .t-item p{max-width:none;}
+  .principle p{max-width:none;}
 }
