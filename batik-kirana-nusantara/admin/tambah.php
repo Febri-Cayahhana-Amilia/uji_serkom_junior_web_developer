@@ -50,7 +50,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="admin-topbar">
   <div class="wrap">
     <span>Masuk sebagai <b><?= htmlspecialchars($_SESSION['admin_username']) ?></b></span>
-    <a href="logout.php">Keluar</a>
+    <div class="admin-topbar-actions">
+      <a href="../index.php" target="_blank" rel="noopener">Lihat Beranda Toko ↗</a>
+      <a href="logout.php">Keluar</a>
+    </div>
   </div>
 </div>
 

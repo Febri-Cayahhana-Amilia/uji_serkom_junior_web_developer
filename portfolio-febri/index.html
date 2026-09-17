@@ -15,14 +15,19 @@
 
 <div class="shell">
   <nav class="sidebar" aria-label="Navigasi bagian portofolio">
-    <div class="comment-block">
-  <strong>Febri Cayahhana Amilia</strong>
-  SMKN 1 Jenangan Ponorogo
+    <div class="comment-block sidebar-brand">
+  <img src="assets/foto-profil.jpeg" alt="Foto Febri Cayahhana Amilia" class="sidebar-avatar">
+  <div>
+   <strong>Febri Cayahhana Amilia</strong>
+   SMKN 1 Jenangan Ponorogo
+  </div>
  </div>
     <div class="tree">
       <span class="tree-root">daftar isi</span>
       <div><span class="branch">├</span> <a href="#profil">profil</a></div>
+      <div><span class="branch">├</span> <a href="#profesional">profil profesional</a></div>
       <div><span class="branch">├</span> <a href="#pendidikan">pendidikan</a></div>
+      <div><span class="branch">├</span> <a href="#pengalaman">pengalaman</a></div>
       <div><span class="branch">├</span> <a href="#proyek">proyek</a></div>
       <div class="nested">
         <div><span class="branch">│ ├</span> <a href="#proyek-batik">batik kirana</a></div>
@@ -30,6 +35,9 @@
         <div><span class="branch">│ └</span> <a href="#proyek-web">web dasar</a></div>
       </div>
       <div><span class="branch">├</span> <a href="#kemampuan">kemampuan</a></div>
+      <div><span class="branch">├</span> <a href="#sertifikat">sertifikat</a></div>
+      <div><span class="branch">├</span> <a href="#kegiatan">kegiatan</a></div>
+      <div><span class="branch">├</span> <a href="#artikel">artikel</a></div>
       <div><span class="branch">└</span> <a href="#kontak">kontak</a></div>
     </div>
     <div class="status-bar">
@@ -48,7 +56,8 @@
         <p class="lede">Ini adalah profil diri saya, berisi latar belakang, pendidikan, proyek yang pernah saya kerjakan, serta kemampuan yang telah saya pelajari selama menempuh jurusan Rekayasa Perangkat Lunak.</p>
         <div class="hero-actions">
           <a href="#proyek" class="btn btn-primary">Lihat proyek</a>
-          <a href="https://ujiserkomjuniorwebdeveloper-production.up.railway.app" class="btn btn-ghost">Kunjungi Batik Kirana Nusantara</a>
+          <a href="../batik-kirana-nusantara/index.php" class="btn btn-ghost">Kunjungi Batik Kirana Nusantara</a>
+          <a href="#kontak" class="btn btn-ghost">Hubungi Saya</a>
         </div>
       </div>
       <div class="hero-visual">
@@ -63,17 +72,73 @@
       <span class="file-label">profil</span>
       <h2>Profil</h2>
       <p class="prose">Saya siswi Rekayasa Perangkat Lunak (RPL) di SMKN 1 Jenangan Ponorogo. Selama masa pembelajaran, saya telah menyelesaikan beberapa proyek pemrograman skala kecil sekaligus memahami dasar-dasar logika pemrograman, struktur data, dan pengembangan web. Saya terbiasa beradaptasi dengan cepat, senang bekerja dalam tim, dan berkomitmen untuk terus mengasah kemampuan teknis. Halaman ini saya buat untuk mendokumentasikan jati diri, riwayat belajar, dan karya yang telah saya buat.</p>
+      <blockquote class="principle">
+        <span class="file-label">prinsip.visi</span>
+        <p>Saya percaya bahwa kemampuan teknis terbaik dibangun dari kebiasaan belajar yang konsisten dan mau memperbaiki kesalahan sendiri. Visi saya adalah terus berkembang menjadi web developer yang tidak hanya bisa menulis kode, tapi juga memahami kebutuhan pengguna di baliknya.</p>
+      </blockquote>
+    </section>
+
+    <section id="profesional">
+      <span class="file-label">profesional</span>
+      <h2>Profil Profesional</h2>
+      <div class="info-grid">
+        <article class="info-card">
+          <span class="info-label">status saat ini</span>
+          <h3>Siswi Kelas XII</h3>
+          <p>Peserta didik aktif, sedang menempuh uji kompetensi keahlian sebagai pembuktian kesiapan kerja.</p>
+        </article>
+        <article class="info-card">
+          <span class="info-label">instansi</span>
+          <h3>SMK Negeri 1 Jenangan Ponorogo</h3>
+          <p>Program keahlian Rekayasa Perangkat Lunak (RPL).</p>
+        </article>
+        <article class="info-card">
+          <span class="info-label">bidang yang ditekuni</span>
+          <h3>Junior Web Developer</h3>
+          <p>Front-end &amp; back-end dasar: HTML, CSS, JavaScript, PHP, serta pengelolaan basis data PostgreSQL.</p>
+        </article>
+      </div>
     </section>
 
     <section id="pendidikan">
       <span class="file-label">pendidikan</span>
-      <h2>Pendidikan &amp; Organisasi</h2>
+      <h2>Pendidikan</h2>
+      <p class="prose">Riwayat pendidikan formal, disusun dari yang terbaru. <!-- TODO: lengkapi/ganti dengan riwayat SMP dan SD asli kamu --></p>
       <div class="timeline">
         <div class="t-item">
           <span class="t-date">2024, sekarang</span>
           <div>
             <h3>SMK Negeri 1 Jenangan Ponorogo</h3>
             <p>Jurusan Rekayasa Perangkat Lunak (RPL).</p>
+          </div>
+        </div>
+        <div class="t-item">
+          <span class="t-date">2021–2024</span>
+          <div>
+            <h3>SMP Negeri 01 Dolopo</h3>
+            <p>Pendidikan menengah pertama. /p>
+          </div>
+        </div>
+        <div class="t-item">
+          <span class="t-date">2015–2021</span>
+          <div>
+            <h3>SD Negeri 01 Kradinan</h3>
+            <p>Pendidikan dasar. <!-- TODO: ganti nama SD dan tahun sesuai data asli --></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="pengalaman">
+      <span class="file-label">pengalaman</span>
+      <h2>Pengalaman</h2>
+      <p class="prose">Pengalaman belajar, organisasi, dan kerja di luar proyek teknis. Untuk pengalaman proyek, lihat bagian <a href="#proyek">Proyek</a>.</p>
+      <div class="timeline">
+        <div class="t-item">
+          <span class="t-date">2026</span>
+          <div>
+            <h3>Praktik Kerja Lapangan — UPT Latkesmas Murnajati</h3>
+            <p>Mengembangkan website PPID menggunakan PHP dengan framework CodeIgniter 4. Berkontribusi dalam pembuatan database, antarmuka website, fitur CRUD informasi publik, form permohonan informasi dan keberatan, serta melakukan pengujian sistem.</p>
           </div>
         </div>
         <div class="t-item">
@@ -100,7 +165,7 @@
             <h3>Batik Kirana Nusantara, Website Toko</h3>
             <p>Website dinamis untuk usaha batik tulis, mencakup katalog produk yang terhubung ke database, halaman detail produk, serta panel admin untuk mengelola data produk.</p>
             <p class="stack"><strong>Stack:</strong> PHP, PostgreSQL, HTML, CSS</p>
-            <a href="https://ujiserkomjuniorwebdeveloper-production.up.railway.app" class="proyek-link">Buka website usaha</a>
+            <a href="../batik-kirana-nusantara/index.php" class="proyek-link">Buka website usaha</a>
           </div>
         </article>
 
@@ -132,9 +197,114 @@
         <div class="yaml-row"><span class="yaml-key">dasar pemrograman:</span><span class="yaml-value">C++, Java, JavaScript</span></div>
         <div class="yaml-row"><span class="yaml-key">pembuatan halaman web:</span><span class="yaml-value">HTML, CSS</span></div>
         <div class="yaml-row"><span class="yaml-key">basis data:</span><span class="yaml-value">PostgreSQL</span></div>
+        <div class="yaml-row"><span class="yaml-key">pemanfaatan AI:</span><span class="yaml-value">Bantuan coding &amp; debugging dengan AI assistant</span></div>
         <div class="yaml-row"><span class="yaml-key">tools:</span><span class="yaml-value">VS Code</span></div>
         <div class="yaml-row"><span class="yaml-key">operasional:</span><span class="yaml-value">Komputer &amp; Laptop</span></div>
         <div class="yaml-row"><span class="yaml-key">dokumentasi:</span><span class="yaml-value">Laporan &amp; Presentasi</span></div>
+      </div>
+
+      <p class="prose skill-level-intro">Tingkat kemampuan saat ini:</p>
+      <div class="skill-levels">
+        <div class="skill-item">
+          <span class="skill-name">HTML &amp; CSS</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:80%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">JavaScript</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:60%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">PHP &amp; PostgreSQL</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:65%"></div></div>
+        </div>
+        <div class="skill-item">
+          <span class="skill-name">C++ &amp; Java (dasar)</span>
+          <div class="skill-bar"><div class="skill-fill" style="width:55%"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sertifikat">
+      <span class="file-label">sertifikat</span>
+      <h2>Sertifikat &amp; Prestasi</h2>
+      <p class="prose">Sertifikasi dan pencapaian yang saya kumpulkan selama menempuh jurusan Rekayasa Perangkat Lunak. <!-- TODO: ganti daftar di bawah dengan sertifikat asli kamu (nama, penyelenggara, tahun) --></p>
+      <div class="sertifikat-grid">
+        <article class="sertifikat-card sertifikat-card-foto">
+          <button type="button" class="sertifikat-foto" data-lightbox="assets/sertifikatKI.jpg" aria-label="Perbesar foto sertifikat Kunjungan Industri">
+            <img src="assets/sertifikatKI.jpg" alt="Sertifikat Kunjungan Industri SMKN 1 Jenangan" loading="lazy">
+          </button>
+          <div>
+            <h3>Kunjungan Industri SMKN 1 Jenangan — Peserta</h3>
+            <p class="stack">Gamelab Indonesia &amp; Educa Studio · 5 Januari 2026</p>
+          </div>
+        </article>
+        <article class="sertifikat-card sertifikat-card-foto">
+          <button type="button" class="sertifikat-foto" data-lightbox="assets/sertifikatdigitalent.jpg" aria-label="Perbesar foto sertifikat Fundamental of Assistant Web Developer">
+            <img src="assets/sertifikatdigitalent.jpg" alt="Sertifikat Pelatihan Fundamental of Assistant Web Developer" loading="lazy">
+          </button>
+          <div>
+            <h3>Fundamental of Assistant Web Developer</h3>
+            <p class="stack">Digital Talent Academy (Komdigi) · Digital Talent Scholarship 2026</p>
+          </div>
+        </article>
+        <article class="sertifikat-card">
+          <span class="sertifikat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M9 14 7 22l5-3 5 3-2-8"/></svg>
+          </span>
+          <div>
+            <h3>Peserta Aktif OSIS — Seksi Apresiasi &amp; Daya Kreasi</h3>
+            <p class="stack">SMP · Masa SMP</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="kegiatan">
+      <span class="file-label">kegiatan</span>
+      <h2>Kegiatan &amp; Dokumentasi Belajar</h2>
+      <div class="kegiatan-galeri">
+        <figure class="kegiatan-foto">
+          <span class="foto-frame"><img src="assets/dokumentasi1.jpeg" alt="Mendata dan mencetak kelengkapan modul pelatihan" loading="lazy"></span>
+          <figcaption>Mendata dan menyiapkan berkas tanda terima modul pelatihan bagi tenaga kesehatan.</figcaption>
+        </figure>
+        <figure class="kegiatan-foto">
+          <span class="foto-frame"><img src="assets/dokumentasi2.jpeg" alt="Menyortir modul dan perlengkapan pelatihan bersama tim" loading="lazy"></span>
+          <figcaption>Menyortir dan mengemas modul serta perlengkapan pelatihan bersama tim sebelum acara dimulai.</figcaption>
+        </figure>
+        <figure class="kegiatan-foto">
+          <span class="foto-frame"><img src="assets/dokumentasi3.jpeg" alt="Sesi penutupan pelatihan Angkatan VIII" loading="lazy"></span>
+          <figcaption>Sesi penutupan Pelatihan Perawatan Jangka Panjang Lanjut Usia Angkatan VIII, 17–25 Juni 2026.</figcaption>
+        </figure>
+        <figure class="kegiatan-foto">
+          <span class="foto-frame"><img src="assets/dokumentasi4.jpeg" alt="Berkoordinasi dengan tim menggunakan laptop" loading="lazy"></span>
+          <figcaption>Berkoordinasi dengan tim menggunakan laptop selama mendampingi jalannya pelatihan.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="artikel">
+      <span class="file-label">artikel</span>
+      <h2>Artikel &amp; Blog</h2>
+      <p class="prose">Catatan singkat dari proses belajar saya. <!-- TODO: ganti dengan tulisan/tutorial asli kamu --></p>
+      <div class="artikel-list">
+        <article class="artikel-card">
+          <span class="artikel-date">2026</span>
+          <h3>Belajar Menghubungkan PHP dengan PostgreSQL</h3>
+          <p>Pengalaman pertama menyambungkan form pada halaman web ke basis data menggunakan PDO, mulai dari setup koneksi sampai menampilkan data produk secara dinamis.</p>
+          <a class="artikel-link" href="#proyek-batik">Lihat proyeknya →</a>
+        </article>
+        <article class="artikel-card">
+          <span class="artikel-date">2025</span>
+          <h3>3 Hal yang Saya Pelajari Saat Membuat Website Pertama</h3>
+          <p>Refleksi tentang pentingnya struktur folder yang rapi, penamaan class CSS yang konsisten, dan kebiasaan menguji tampilan di berbagai ukuran layar.</p>
+          <a class="artikel-link" href="#kemampuan">Lihat kemampuan terkait →</a>
+        </article>
+        <article class="artikel-card">
+          <span class="artikel-date">2024</span>
+          <h3>Kenapa Saya Memilih Jurusan RPL</h3>
+          <p>Cerita singkat tentang ketertarikan saya pada logika pemrograman sejak awal masuk SMK dan alasan memilih fokus di pengembangan web.</p>
+          <a class="artikel-link" href="#profil">Baca profil saya →</a>
+        </article>
       </div>
     </section>
 
@@ -149,11 +319,11 @@
             </span>
             <span class="chip-text"><span class="chip-label">Email</span><span class="chip-value">febricayahhana28@gmail.com</span></span>
           </a>
-          <a class="chip" href="tel:+6281334568278">
+          <a class="chip" href="https://wa.me/6281334568278" target="_blank" rel="noopener">
             <span class="chip-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z"/></svg>
             </span>
-            <span class="chip-text"><span class="chip-label">Telepon</span><span class="chip-value">+62 813-3456-8278</span></span>
+            <span class="chip-text"><span class="chip-label">WhatsApp</span><span class="chip-value">+62 813-3456-8278</span></span>
           </a>
           <span class="chip">
             <span class="chip-icon" aria-hidden="true">
@@ -161,15 +331,76 @@
             </span>
             <span class="chip-text"><span class="chip-label">Lokasi</span><span class="chip-value">Dolopo, Madiun, Jawa Timur</span></span>
           </span>
+          <span class="chip">
+            <span class="chip-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 3v3M16 3v3"/></svg>
+            </span>
+            <span class="chip-text"><span class="chip-label">Alamat Instansi</span><span class="chip-value">SMKN 1 Jenangan, Ponorogo</span></span>
+          </span>
         </div>
-      </div>
-    </section>
+
+        <p class="prose social-label">Media sosial:</p>
+<div class="contact-chips">
+  <a class="chip" href="https://instagram.com/febri.cayahhanaa" target="_blank" rel="noopener">
+    <span class="chip-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="3" width="18" height="18" rx="5"/>
+        <circle cx="12" cy="12" r="4"/>
+        <circle cx="17.2" cy="6.8" r="1"/>
+      </svg>
+    </span>
+    <span class="chip-text">
+      <span class="chip-label">Instagram</span>
+      <span class="chip-value">@febri.cayahhanaa</span>
+    </span>
+  </a>
+
+  <a class="chip" href="https://tiktok.com/@c_amiliaa" target="_blank" rel="noopener">
+    <span class="chip-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M15 4c.4 2.7 1.9 4.5 4.5 4.7v3.1c-1.6 0-3-.5-4.5-1.4v5.3a5.3 5.3 0 1 1-4.6-5.2v3.2a2.2 2.2 0 1 0 1.5 2.1V4H15z"/>
+      </svg>
+    </span>
+    <span class="chip-text">
+      <span class="chip-label">TikTok</span>
+      <span class="chip-value">@c_amiliaa</span>
+    </span>
+  </a>
+</div>
+
 
     <footer>
-      <span>© 2026 Febri Cayahhana Amilia</span>
-      <span>Portofolio Pribadi</span>
+      <div class="footer-top">
+        <span class="footer-name">Febri Cayahhana Amilia</span>
+        <nav class="footer-nav" aria-label="Navigasi singkat footer">
+          <a href="#profil">Profil</a>
+          <a href="#proyek">Proyek</a>
+          <a href="#sertifikat">Sertifikat</a>
+          <a href="#kontak">Kontak</a>
+        </nav>
+        <div class="footer-social">
+          <a href="https://instagram.com/" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1"/></svg>
+          </a>
+          <a href="https://github.com/" target="_blank" rel="noopener" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>
+          </a>
+          <a href="https://linkedin.com/" target="_blank" rel="noopener" aria-label="LinkedIn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="11" x2="8" y2="16"/><line x1="8" y1="8" x2="8" y2="8"/><line x1="12" y1="16" x2="12" y2="11"/><path d="M12 13a2 2 0 0 1 4 0v3"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Febri Cayahhana Amilia</span>
+        <span>Portofolio Pribadi</span>
+      </div>
     </footer>
   </main>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Tutup">&times;</button>
+  <img src="" alt="" id="lightboxImg">
 </div>
 
 <script src="js/script.js"></script>

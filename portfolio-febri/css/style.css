@@ -137,6 +137,78 @@ section h2{font-size:1.5rem; margin-bottom:1rem;}
 
 footer{border-top:1px solid var(--line); padding-top:1.5rem; display:flex; justify-content:space-between; font-size:.82rem; color:var(--muted);}
 
+.sertifikat-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:1rem;}
+.sertifikat-card{display:flex; gap:.9rem; align-items:flex-start; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:1.2rem 1.3rem;}
+.sertifikat-icon{width:34px; height:34px; flex-shrink:0; border-radius:50%; background:var(--panel); color:var(--ochre); display:flex; align-items:center; justify-content:center;}
+.sertifikat-icon svg{width:18px; height:18px;}
+.sertifikat-card h3{font-size:.98rem; margin:0 0 .3rem;}
+
+.info-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1.1rem;}
+.info-card{background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:1.3rem 1.4rem;}
+.info-card .info-label{font-family:var(--mono); font-size:.72rem; color:var(--ochre); display:block; margin-bottom:.4rem;}
+.info-card h3{font-size:1.05rem; margin:0 0 .35rem;}
+.info-card p{margin:0; color:var(--muted); font-size:.9rem;}
+
+.artikel-list{display:grid; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); gap:1.2rem;}
+.artikel-card{background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:1.4rem 1.5rem;}
+.artikel-date{font-family:var(--mono); font-size:.75rem; color:var(--ochre); display:block; margin-bottom:.5rem;}
+.artikel-card h3{font-size:1.02rem; margin:0 0 .5rem;}
+.artikel-card p{margin:0 0 .9rem; color:var(--muted); font-size:.9rem;}
+.artikel-link{display:inline-block; color:var(--indigo); font-weight:600; text-decoration:underline; text-underline-offset:3px; font-size:.86rem;}
+
+/* ---------- Sidebar brand / avatar ---------- */
+.sidebar-brand{display:flex; align-items:center; gap:.7rem;}
+.sidebar-avatar{width:42px; height:42px; border-radius:50%; object-fit:cover; border:2px solid var(--ochre); flex-shrink:0;}
+
+/* ---------- Prinsip / visi ---------- */
+.principle{margin:1.4rem 0 0; padding:1.1rem 1.4rem; background:var(--paper); border-left:3px solid var(--ochre); border-radius:0 10px 10px 0;}
+.principle .file-label{margin-bottom:.4rem;}
+.principle p{margin:0; color:var(--muted); max-width:60ch; font-style:italic;}
+
+/* ---------- Skill levels ---------- */
+.skill-level-intro{margin-top:1.3rem; margin-bottom:.6rem; font-size:.9rem;}
+.skill-levels{display:flex; flex-direction:column; gap:.8rem;}
+.skill-item{display:grid; grid-template-columns:150px 1fr; align-items:center; gap:.8rem;}
+.skill-name{font-size:.88rem; color:var(--ink);}
+.skill-bar{background:var(--line); border-radius:999px; height:8px; overflow:hidden;}
+.skill-fill{background:var(--ochre); height:100%; border-radius:999px;}
+
+/* ---------- Kontak extras ---------- */
+.social-label{margin-top:1.4rem; margin-bottom:.4rem; font-size:.9rem;}
+
+/* ---------- Footer ---------- */
+footer{padding:2.4rem 0 3rem;}
+.footer-top{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem; padding-bottom:1.2rem; border-bottom:1px solid var(--line);}
+.footer-name{font-weight:600; color:var(--indigo);}
+.footer-nav{display:flex; gap:1rem; flex-wrap:wrap;}
+.footer-nav a{font-size:.86rem; text-decoration:none; color:var(--muted);}
+.footer-nav a:hover{color:var(--indigo);}
+.footer-social{display:flex; gap:.7rem;}
+.footer-social a{width:30px; height:30px; border-radius:50%; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--indigo);}
+.footer-social svg{width:16px; height:16px;}
+.footer-bottom{display:flex; justify-content:space-between; flex-wrap:wrap; gap:.4rem; padding-top:1rem; font-size:.82rem; color:var(--muted);}
+
+/* ---------- Galeri dokumentasi kegiatan ---------- */
+.kegiatan-galeri{display:grid; grid-template-columns:repeat(4, 1fr); gap:.9rem; margin-top:1.5rem;}
+.kegiatan-foto{margin:0; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:var(--paper);}
+.kegiatan-foto .foto-frame{aspect-ratio:4/3; overflow:hidden; display:block;}
+.kegiatan-foto img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .25s ease;}
+.kegiatan-foto:hover img{transform:scale(1.05);}
+.kegiatan-foto figcaption{padding:.6rem .7rem; font-size:.78rem; line-height:1.4; color:var(--muted); border-top:1px solid var(--line);}
+
+/* ---------- Foto sertifikat (klik untuk perbesar) ---------- */
+.sertifikat-card-foto{align-items:flex-start;}
+.sertifikat-foto{padding:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; width:64px; height:64px; flex:none; cursor:zoom-in; background:var(--paper);}
+.sertifikat-foto img{width:100%; height:100%; object-fit:cover; display:block; transition:transform .2s ease;}
+.sertifikat-foto:hover img{transform:scale(1.08);}
+.sertifikat-foto:focus-visible{outline:2px solid var(--ochre); outline-offset:2px;}
+
+.lightbox{position:fixed; inset:0; background:rgba(28,25,18,.86); display:flex; align-items:center; justify-content:center; padding:2rem; z-index:1000;}
+.lightbox[hidden]{display:none;}
+.lightbox img{max-width:min(90vw, 900px); max-height:88vh; border-radius:8px; box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.lightbox-close{position:absolute; top:1.2rem; right:1.4rem; width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.3); color:#fff; font-size:1.6rem; line-height:1; cursor:pointer;}
+.lightbox-close:hover{background:rgba(0,0,0,.5);}
+
 @media (max-width:860px){
   .shell{grid-template-columns:1fr;}
   .sidebar{position:relative; height:auto;}
@@ -145,4 +217,8 @@ footer{border-top:1px solid var(--line); padding-top:1.5rem; display:flex; justi
   .t-item{grid-template-columns:1fr;}
   main{padding:2.5rem 1.5rem;}
   .yaml-key{min-width:140px;}
+  .sertifikat-grid{grid-template-columns:1fr;}
+  .info-grid{grid-template-columns:1fr;}
+  .artikel-list{grid-template-columns:1fr;}
+  .kegiatan-galeri{grid-template-columns:repeat(2, 1fr);}
 }

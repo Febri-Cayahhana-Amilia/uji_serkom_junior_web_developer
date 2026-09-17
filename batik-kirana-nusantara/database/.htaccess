@@ -1,0 +1,6 @@
+# Blokir file .sql supaya tidak bisa diunduh langsung lewat browser.
+# setup_admin.php tetap bisa diakses (dilindungi kunci rahasia di dalam filenya)
+# tapi SEBAIKNYA dihapus dari server setelah dipakai sekali.
+<FilesMatch "\.sql$">
+    Require all denied
+</FilesMatch>

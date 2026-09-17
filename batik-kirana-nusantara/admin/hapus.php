@@ -2,7 +2,12 @@
 require __DIR__ . '/../includes/auth_admin.php';
 require __DIR__ . '/../includes/db.php';
 
-$id_produk = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: dashboard.php');
+    exit;
+}
+
+$id_produk = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
 if ($id_produk > 0) {
     $stmt = $koneksi->prepare("SELECT gambar FROM produk WHERE id_produk = ?");

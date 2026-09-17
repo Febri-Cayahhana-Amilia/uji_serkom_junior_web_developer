@@ -18,39 +18,71 @@ if (!$produk) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama_produk = trim($_POST['nama_produk'] ?? '');
-    $id_kategori = (int)($_POST['id_kategori'] ?? 0);
-    $motif = trim($_POST['motif'] ?? '');
-    $harga = (float)($_POST['harga'] ?? 0);
-    $stok = (int)($_POST['stok'] ?? 0);
-    $deskripsi = trim($_POST['deskripsi'] ?? '');
 
-    if ($nama_produk === '' || $id_kategori === 0 || $harga <= 0) {
-        $error = 'Nama produk, kategori, dan harga wajib diisi dengan benar.';
+    // --- Deteksi kasus klasik: upload gambar terlalu besar sehingga PHP
+    // membuang seluruh $_POST/$_FILES tanpa memberi error apa pun.
+    // Cirinya: browser benar-benar mengirim body (Content-Length > 0)
+    // tapi PHP menerimanya sebagai $_POST kosong.
+    if (empty($_POST) && empty($_FILES) && (int)($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+        $error = 'Gagal menyimpan: ukuran foto yang diupload melebihi batas maksimal server (cek post_max_size / upload_max_filesize di php.ini). Coba foto yang lebih kecil.';
     } else {
-        $hasilUpload = proses_upload_gambar('gambar');
 
-        if ($hasilUpload && isset($hasilUpload['error'])) {
-            $error = $hasilUpload['error'];
+        $nama_produk = trim($_POST['nama_produk'] ?? '');
+        $id_kategori = (int)($_POST['id_kategori'] ?? 0);
+        $motif = trim($_POST['motif'] ?? '');
+        $harga = (float)($_POST['harga'] ?? 0);
+        $stok = (int)($_POST['stok'] ?? 0);
+        $deskripsi = trim($_POST['deskripsi'] ?? '');
+
+        if ($nama_produk === '' || $id_kategori === 0 || $harga <= 0) {
+            $error = 'Nama produk, kategori, dan harga wajib diisi dengan benar.';
         } else {
-            // Kalau tidak upload foto baru, pertahankan foto lama
-            $nama_file_gambar = $hasilUpload['nama_file'] ?? $produk['gambar'];
+            $hasilUpload = proses_upload_gambar('gambar');
 
-            $stmt = $koneksi->prepare(
-                "UPDATE produk SET id_kategori=?, nama_produk=?, deskripsi=?, motif=?, harga=?, stok=?, gambar=? WHERE id_produk=?"
-            );
-            if ($stmt->execute([$id_kategori, $nama_produk, $deskripsi, $motif, $harga, $stok, $nama_file_gambar, $id_produk])) {
-                // Hapus file foto lama dari server kalau diganti dengan yang baru
-                if (isset($hasilUpload['nama_file']) && $produk['gambar']) {
-                    $fileLama = __DIR__ . '/../uploads/produk/' . $produk['gambar'];
-                    if (is_file($fileLama)) @unlink($fileLama);
-                }
-                header('Location: dashboard.php');
-                exit;
+            if ($hasilUpload && isset($hasilUpload['error'])) {
+                $error = $hasilUpload['error'];
             } else {
-                $error = 'Gagal memperbarui produk.';
+                // Kalau tidak upload foto baru, pertahankan foto lama
+                $nama_file_gambar = $hasilUpload['nama_file'] ?? $produk['gambar'];
+
+                try {
+                    $stmtUpdate = $koneksi->prepare(
+                        "UPDATE produk SET id_kategori=?, nama_produk=?, deskripsi=?, motif=?, harga=?, stok=?, gambar=? WHERE id_produk=?"
+                    );
+                    $stmtUpdate->execute([$id_kategori, $nama_produk, $deskripsi, $motif, $harga, $stok, $nama_file_gambar, $id_produk]);
+
+                    if ($stmtUpdate->rowCount() === 0) {
+                        // Query jalan tanpa error, tapi tidak ada baris yang benar-benar
+                        // berubah — biasanya karena id_produk tidak cocok dengan baris manapun.
+                        // Sebelumnya kode lama diam saja dan langsung redirect seolah sukses.
+                        $error = 'Produk tidak ditemukan atau tidak ada perubahan yang tersimpan (0 baris terpengaruh). Coba muat ulang halaman ini dan cek lagi id produknya.';
+                    } else {
+                        // Hapus file foto lama dari server kalau diganti dengan yang baru
+                        if (isset($hasilUpload['nama_file']) && $produk['gambar']) {
+                            $fileLama = __DIR__ . '/../uploads/produk/' . $produk['gambar'];
+                            if (is_file($fileLama)) @unlink($fileLama);
+                        }
+                        header('Location: dashboard.php?diperbarui=1');
+                        exit;
+                    }
+                } catch (PDOException $e) {
+                    // Sebelumnya exception dari constraint/tipe data di PostgreSQL bisa
+                    // membuat halaman putih kosong (fatal error tertelan oleh display_errors=off)
+                    // sehingga terlihat "tidak ada error" padahal sebenarnya gagal di level DB.
+                    error_log('[edit.php] Gagal update produk id=' . $id_produk . ': ' . $e->getMessage());
+                    $error = 'Gagal memperbarui produk di database: ' . $e->getMessage();
+                }
             }
         }
+
+        // Supaya form tetap terisi ulang dengan input yang baru saja dikirim
+        // kalau ada error (bukan balik ke data lama dari DB).
+        $_POST['nama_produk'] = $nama_produk ?? ($_POST['nama_produk'] ?? '');
+        $_POST['id_kategori'] = $id_kategori ?? ($_POST['id_kategori'] ?? '');
+        $_POST['motif'] = $motif ?? ($_POST['motif'] ?? '');
+        $_POST['harga'] = $harga ?? ($_POST['harga'] ?? '');
+        $_POST['stok'] = $stok ?? ($_POST['stok'] ?? '');
+        $_POST['deskripsi'] = $deskripsi ?? ($_POST['deskripsi'] ?? '');
     }
 } else {
     // Isi form dengan data lama saat pertama dibuka
@@ -70,7 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="admin-topbar">
   <div class="wrap">
     <span>Masuk sebagai <b><?= htmlspecialchars($_SESSION['admin_username']) ?></b></span>
-    <a href="logout.php">Keluar</a>
+    <div class="admin-topbar-actions">
+      <a href="../index.php" target="_blank" rel="noopener">Lihat Beranda Toko ↗</a>
+      <a href="logout.php">Keluar</a>
+    </div>
   </div>
 </div>
 
@@ -91,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label for="id_kategori">Kategori</label>
         <select id="id_kategori" name="id_kategori" required>
           <?php foreach ($kategoriList as $kat): ?>
-            <option value="<?= (int)$kat['id_kategori'] ?>" <?= (int)$_POST['id_kategori'] === (int)$kat['id_kategori'] ? 'selected' : '' ?>>
+            <option value="<?= (int)$kat['id_kategori'] ?>" <?= (string)($_POST['id_kategori'] ?? '') === (string)$kat['id_kategori'] ? 'selected' : '' ?>>
               <?= htmlspecialchars($kat['nama_kategori']) ?>
             </option>
           <?php endforeach; ?>
@@ -122,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <p style="font-size:13.5px; color:var(--soga); margin:0 0 10px;">Belum ada foto untuk produk ini.</p>
         <?php endif; ?>
         <input type="file" id="gambar" name="gambar" accept="image/jpeg,image/png,image/webp">
-        <p style="font-size:12.5px; color:var(--soga); margin:6px 0 0;">Kosongkan kalau tidak ingin mengganti foto.</p>
+        <p style="font-size:12.5px; color:var(--soga); margin:6px 0 0;">Kosongkan kalau tidak ingin mengganti foto. Maks 2MB.</p>
       </div>
       <button type="submit" class="btn btn-gold">Simpan Perubahan</button>
       <a href="dashboard.php" class="btn btn-outline" style="color:var(--indigo); border-color:var(--indigo);">Batal</a>

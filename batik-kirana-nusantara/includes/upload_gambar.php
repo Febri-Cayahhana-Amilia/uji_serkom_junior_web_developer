@@ -25,7 +25,7 @@ function proses_upload_gambar(string $field_name): ?array {
     }
 
     if ($_FILES[$field_name]['size'] > $ukuran_maks) {
-        return ['error' => 'Ukuran foto maksimal 3MB.'];
+        return ['error' => 'Ukuran foto maksimal 2MB.'];
     }
 
     // Pastikan file yang diupload benar-benar gambar (bukan file lain yang disamarkan)

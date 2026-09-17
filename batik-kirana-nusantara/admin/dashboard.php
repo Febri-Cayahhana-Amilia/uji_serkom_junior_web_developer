@@ -21,11 +21,22 @@ $produkList = $koneksi->query(
 <div class="admin-topbar">
   <div class="wrap">
     <span>Masuk sebagai <b><?= htmlspecialchars($_SESSION['admin_username']) ?></b></span>
-    <a href="logout.php">Keluar</a>
+    <div class="admin-topbar-actions">
+      <a href="../index.php" target="_blank" rel="noopener">Lihat Beranda Toko ↗</a>
+      <a href="logout.php">Keluar</a>
+    </div>
   </div>
 </div>
 
-<div class="wrap" style="padding-top:40px; padding-bottom:60px;">
+<div class="wrap admin-subnav">
+  <a href="dashboard.php" class="admin-subnav-aktif">Kelola Produk</a>
+  <a href="kategori.php">Kelola Kategori</a>
+  <a href="pesanan.php">Pesanan Masuk</a>
+  <a href="transaksi_baru.php">Transaksi Manual</a>
+  <a href="laporan.php">Laporan Penjualan</a>
+</div>
+
+<div class="wrap" style="padding-top:24px; padding-bottom:60px;">
   <div class="admin-toolbar">
     <h2 class="section-title" style="margin:0;">Kelola Produk</h2>
     <a href="tambah.php" class="btn btn-gold">+ Tambah Produk</a>
@@ -60,8 +71,10 @@ $produkList = $koneksi->query(
             <td><?= (int)$row['stok'] ?></td>
             <td class="admin-actions">
               <a href="edit.php?id=<?= (int)$row['id_produk'] ?>" class="link-edit">Edit</a>
-              <a href="hapus.php?id=<?= (int)$row['id_produk'] ?>" class="link-hapus"
-                 onclick="return confirm('Yakin ingin menghapus produk ini?');">Hapus</a>
+              <form method="POST" action="hapus.php" onsubmit="return confirm('Yakin ingin menghapus produk ini?');" style="display:inline;">
+                <input type="hidden" name="id" value="<?= (int)$row['id_produk'] ?>">
+                <button type="submit" class="link-hapus keranjang-hapus-btn">Hapus</button>
+              </form>
             </td>
           </tr>
         <?php endforeach; ?>

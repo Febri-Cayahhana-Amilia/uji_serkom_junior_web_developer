@@ -13,6 +13,6 @@
  * 4. Isi dua baris di bawah ini.
  */
 
-define('SMTP_USERNAME', 'febri.cayahhana28@gmail.com'); // akun Gmail pengirim
-define('SMTP_APP_PASSWORD', 'mejwosrsdwfpbncu');       // App Password, BUKAN password biasa
-define('EMAIL_TUJUAN', 'febri.cayahhana28@gmail.com');      // email yang menerima pesan form kontak
+define('SMTP_USERNAME', 'ganti-dengan-emailmu@gmail.com'); // akun Gmail pengirim
+define('SMTP_APP_PASSWORD', 'ganti-dengan-app-password-16-digit'); // App Password, BUKAN password biasa
+define('EMAIL_TUJUAN', 'ganti-dengan-emailmu@gmail.com');  // email yang menerima pesan form kontak

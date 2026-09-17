@@ -40,18 +40,9 @@ require __DIR__ . '/includes/header.php';
         <a href="tentang.php" class="btn btn-outline">Cerita Kami</a>
       </div>
     </div>
-    <div class="hero-motif">
-      <svg class="motif-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <circle cx="60" cy="60" r="34" fill="none" stroke="var(--gold)" stroke-width="1.4"/>
-        <circle cx="60" cy="60" r="22" fill="none" stroke="var(--gold)" stroke-width="1.4"/>
-        <g stroke="var(--gold)" stroke-width="1.4">
-          <path d="M60 8 v20 M60 92 v20 M8 60 h20 M92 60 h20"/>
-          <path d="M25 25 l14 14 M81 25 l-14 14 M25 95 l14-14 M81 95 l-14-14"/>
-        </g>
-        <circle cx="60" cy="60" r="4" fill="var(--gold)"/>
-      </svg>
-      <h3>Motif Minggu Ini: Sido Mukti</h3>
-      <p>Melambangkan harapan hidup sejahtera dan sering dipakai dalam upacara adat pernikahan Jawa.</p>
+    <div class="hero-motif hero-logo-card">
+      <img src="assets/img/logobaru.png" alt="Logo Batik Kirana Nusantara" class="hero-logo-img">
+     
     </div>
   </div>
 </header>

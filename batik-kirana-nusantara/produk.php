@@ -41,6 +41,10 @@ require __DIR__ . '/includes/header.php';
     <h2 class="section-title">Semua Produk</h2>
     <p class="section-sub">Jelajahi koleksi batik tulis, batik cap, dan aksesoris kami — setiap motif punya cerita.</p>
 
+    <?php if (isset($_GET['ditambahkan'])): ?>
+      <p class="alert alert-success">Produk berhasil ditambahkan ke keranjang. <a href="keranjang.php" style="text-decoration:underline;">Lihat keranjang</a></p>
+    <?php endif; ?>
+
     <form method="GET" action="produk.php" class="cari-box">
       <?php if ($id_kategori > 0): ?>
         <input type="hidden" name="kategori" value="<?= (int)$id_kategori ?>">
@@ -87,7 +91,20 @@ require __DIR__ . '/includes/header.php';
               <h3><?= htmlspecialchars($row['nama_produk']) ?></h3>
               <span class="produk-harga">Rp <?= number_format($row['harga'], 0, ',', '.') ?></span>
               <span class="produk-stok"><?= (int)$row['stok'] > 0 ? (int)$row['stok'] . ' stok tersedia' : 'Stok habis' ?></span>
-              <a href="produk_detail.php?id=<?= (int)$row['id_produk'] ?>" class="btn btn-gold">Lihat Detail</a>
+              <div class="produk-aksi">
+                <a href="produk_detail.php?id=<?= (int)$row['id_produk'] ?>" class="btn btn-outline btn-kecil">Detail</a>
+                <?php if ((int)$row['stok'] > 0): ?>
+                  <form method="POST" action="keranjang.php" class="tambah-keranjang-form">
+                    <input type="hidden" name="aksi" value="tambah">
+                    <input type="hidden" name="id_produk" value="<?= (int)$row['id_produk'] ?>">
+                    <input type="hidden" name="jumlah" value="1">
+                    <input type="hidden" name="kembali" value="produk.php<?= $id_kategori > 0 ? '?kategori=' . (int)$id_kategori : '' ?>">
+                    <button type="submit" class="btn btn-gold btn-kecil">+ Keranjang</button>
+                  </form>
+                <?php else: ?>
+                  <button type="button" class="btn btn-gold btn-kecil" disabled>Stok Habis</button>
+                <?php endif; ?>
+              </div>
             </div>
           </div>
         <?php endforeach; ?>
