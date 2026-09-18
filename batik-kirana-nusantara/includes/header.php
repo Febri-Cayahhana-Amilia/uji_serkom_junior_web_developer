@@ -50,7 +50,7 @@ $jumlah_keranjang = array_sum($_SESSION['keranjang'] ?? []);
           <?php endif; ?>
         </a>
       </li>
-      <li><a href="../portfolio-febri/index.html" class="nav-back">↩ Web Profil</a></li>
+      <li><a href="https://portofoliofebri-production.up.railway.app" class="nav-back" target="_blank" rel="noopener">↩ Web Profil</a></li>
       <?php if ($is_lokal): ?>
       <li>
         <a href="<?= $base_url ?? '' ?>admin/login.php" class="nav-admin" aria-label="Login Admin" title="Login Admin">
