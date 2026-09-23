@@ -1,7 +1,11 @@
 <?php
 /**
  * Helper Keranjang Belanja — disimpan di session, per pengunjung.
- * Struktur: $_SESSION['keranjang'] = [ id_produk => jumlah, ... ]
+ * Struktur: $_SESSION['keranjang'] = [ kunci => jumlah, ... ]
+ * $kunci berbentuk "id_produk" (tanpa varian) atau "id_produk_UKURAN"
+ * (contoh: "12_L") — sehingga satu produk yang sama bisa ada beberapa
+ * baris di keranjang untuk ukuran yang berbeda, tanpa perlu kolom baru
+ * di database.
  */
 
 if (session_status() === PHP_SESSION_NONE) session_start();
@@ -10,30 +14,38 @@ if (!isset($_SESSION['keranjang']) || !is_array($_SESSION['keranjang'])) {
     $_SESSION['keranjang'] = [];
 }
 
+/** Bentuk kunci baris keranjang dari id_produk + ukuran (opsional). */
+function keranjang_kunci(int $id_produk, string $ukuran = ''): string
+{
+    $ukuran = trim($ukuran);
+    return $ukuran !== '' ? $id_produk . '_' . strtoupper($ukuran) : (string)$id_produk;
+}
+
 /** Tambah produk ke keranjang (atau tambah jumlahnya jika sudah ada). */
-function keranjang_tambah(int $id_produk, int $jumlah = 1): void
+function keranjang_tambah(int $id_produk, int $jumlah = 1, string $ukuran = ''): void
 {
     if ($jumlah < 1) $jumlah = 1;
-    if (!isset($_SESSION['keranjang'][$id_produk])) {
-        $_SESSION['keranjang'][$id_produk] = 0;
+    $kunci = keranjang_kunci($id_produk, $ukuran);
+    if (!isset($_SESSION['keranjang'][$kunci])) {
+        $_SESSION['keranjang'][$kunci] = 0;
     }
-    $_SESSION['keranjang'][$id_produk] += $jumlah;
+    $_SESSION['keranjang'][$kunci] += $jumlah;
 }
 
-/** Ubah jumlah item tertentu di keranjang. Jumlah 0 = hapus. */
-function keranjang_ubah_jumlah(int $id_produk, int $jumlah): void
+/** Ubah jumlah baris tertentu di keranjang (berdasarkan kunci). Jumlah 0 = hapus. */
+function keranjang_ubah_jumlah(string $kunci, int $jumlah): void
 {
     if ($jumlah <= 0) {
-        unset($_SESSION['keranjang'][$id_produk]);
+        unset($_SESSION['keranjang'][$kunci]);
     } else {
-        $_SESSION['keranjang'][$id_produk] = $jumlah;
+        $_SESSION['keranjang'][$kunci] = $jumlah;
     }
 }
 
-/** Hapus satu item dari keranjang. */
-function keranjang_hapus(int $id_produk): void
+/** Hapus satu baris dari keranjang (berdasarkan kunci). */
+function keranjang_hapus(string $kunci): void
 {
-    unset($_SESSION['keranjang'][$id_produk]);
+    unset($_SESSION['keranjang'][$kunci]);
 }
 
 /** Kosongkan seluruh keranjang (dipanggil setelah checkout berhasil). */
@@ -66,7 +78,13 @@ function keranjang_isi(PDO $koneksi): array
         return ['items' => [], 'total' => 0];
     }
 
-    $idList = array_keys($isi);
+    // Ambil daftar id_produk unik dari semua kunci (format "id" atau "id_UKURAN")
+    $idList = [];
+    foreach (array_keys($isi) as $kunci) {
+        $idList[] = (int)explode('_', (string)$kunci, 2)[0];
+    }
+    $idList = array_values(array_unique($idList));
+
     $placeholder = implode(',', array_fill(0, count($idList), '?'));
     $stmt = $koneksi->prepare(
         "SELECT id_produk, nama_produk, harga, stok, gambar FROM produk WHERE id_produk IN ($placeholder)"
@@ -82,11 +100,14 @@ function keranjang_isi(PDO $koneksi): array
     $items = [];
     $total = 0;
 
-    foreach ($isi as $id_produk => $jumlah) {
-        $id_produk = (int)$id_produk;
+    foreach ($isi as $kunci => $jumlah) {
+        $bagian = explode('_', (string)$kunci, 2);
+        $id_produk = (int)$bagian[0];
+        $ukuran = $bagian[1] ?? '';
+
         if (!isset($produkById[$id_produk])) {
             // Produk sudah dihapus dari database — buang dari keranjang
-            unset($_SESSION['keranjang'][$id_produk]);
+            unset($_SESSION['keranjang'][$kunci]);
             continue;
         }
         $p = $produkById[$id_produk];
@@ -94,9 +115,16 @@ function keranjang_isi(PDO $koneksi): array
         $subtotal = $jumlah * (float)$p['harga'];
         $total += $subtotal;
 
+        $namaTampil = $p['nama_produk'];
+        if ($ukuran !== '') {
+            $namaTampil .= ' (Ukuran: ' . $ukuran . ')';
+        }
+
         $items[] = [
+            'kunci'       => (string)$kunci,
             'id_produk'   => $id_produk,
-            'nama_produk' => $p['nama_produk'],
+            'ukuran'      => $ukuran,
+            'nama_produk' => $namaTampil,
             'harga'       => (float)$p['harga'],
             'stok'        => (int)$p['stok'],
             'gambar'      => $p['gambar'],

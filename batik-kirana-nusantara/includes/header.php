@@ -50,7 +50,20 @@ $jumlah_keranjang = array_sum($_SESSION['keranjang'] ?? []);
           <?php endif; ?>
         </a>
       </li>
-      <li><a href="https://portofoliofebri-production.up.railway.app" class="nav-back" target="_blank" rel="noopener">↩ Web Profil</a></li>
+      <li>
+        <?php if (!empty($_SESSION['pembeli_id'])): ?>
+          <a href="<?= $base_url ?? '' ?>akun.php" class="nav-akun" aria-label="Akun saya" title="Akun saya">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/></svg>
+            <span class="nav-akun-label">Hai, <?= htmlspecialchars(explode(' ', $_SESSION['pembeli_nama'])[0]) ?></span>
+          </a>
+        <?php else: ?>
+          <a href="<?= $base_url ?? '' ?>login.php" class="nav-akun" aria-label="Login pembeli" title="Login / Daftar">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="8" r="4"/></svg>
+            <span class="nav-akun-label">Login</span>
+          </a>
+        <?php endif; ?>
+      </li>
+      <li><a href="https://portofoliofebri-production.up.railway.app" class="nav-back">↩ Web Profil</a></li>
       <?php if ($is_lokal): ?>
       <li>
         <a href="<?= $base_url ?? '' ?>admin/login.php" class="nav-admin" aria-label="Login Admin" title="Login Admin">

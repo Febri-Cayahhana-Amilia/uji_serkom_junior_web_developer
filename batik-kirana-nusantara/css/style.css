@@ -27,7 +27,7 @@
 
 * { box-sizing: border-box; }
 
-html { overflow-x: hidden; }
+html { overflow-x: clip; }
 
 body {
   margin: 0;
@@ -36,7 +36,7 @@ body {
   font-family: 'Work Sans', sans-serif;
   font-size: 16.5px;
   line-height: 1.65;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -139,6 +139,7 @@ img { max-width: 100%; display: block; }
 .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 .nav-admin-label { display: none; }
+.nav-akun-label { display: none; }
 
 .nav-links a {
   color: rgba(241,231,211,0.85);
@@ -327,6 +328,18 @@ img { max-width: 100%; display: block; }
   }
 
   .nav-admin-label { display: inline; font-size: 16px; }
+
+  .nav-akun {
+    width: auto;
+    height: auto;
+    border: none;
+    border-radius: 0;
+    padding: 13px 20px;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .nav-akun-label { display: inline; font-size: 16px; }
 }
 
 @media (max-width: 480px) {
@@ -357,11 +370,25 @@ img { max-width: 100%; display: block; }
 }
 
 .btn-outline {
-  border-color: rgba(241,231,211,0.5);
-  color: var(--cream);
+  border-color: rgba(31,58,90,0.4);
+  color: var(--indigo);
+  background: transparent;
 }
 
 .btn-outline:hover {
+  transform: translateY(-2px);
+  border-color: var(--indigo);
+  background: rgba(31,58,90,0.06);
+}
+
+/* Varian untuk tombol outline di atas background gelap (mis. hero indigo) */
+.btn-outline-light {
+  border-color: rgba(241,231,211,0.5);
+  color: var(--cream);
+  background: transparent;
+}
+
+.btn-outline-light:hover {
   transform: translateY(-2px);
   border-color: var(--gold);
   color: var(--gold);
@@ -671,6 +698,146 @@ img { max-width: 100%; display: block; }
   font-size: 13px;
   color: var(--soga);
   margin-bottom: 6px;
+}
+
+.pd-qty-hint {
+  display: block;
+  font-size: 12.5px;
+  color: var(--soga);
+  margin-top: 6px;
+  max-width: 220px;
+}
+
+/* ---------- Pilihan ukuran (produk baju/pakaian) ---------- */
+
+.pd-ukuran-field {
+  flex-basis: 100%;
+  margin-bottom: 4px;
+}
+
+.pd-ukuran-field > label {
+  display: block;
+  font-size: 13px;
+  color: var(--soga);
+  margin-bottom: 8px;
+}
+
+.pd-ukuran-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pd-ukuran-pill {
+  position: relative;
+}
+
+.pd-ukuran-pill input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.pd-ukuran-pill span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 9px 14px;
+  border: 1px solid var(--indigo);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--indigo);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pd-ukuran-pill input:checked + span {
+  background: var(--indigo);
+  color: var(--cream);
+}
+
+.pd-ukuran-pill input:focus-visible + span {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.pd-ukuran-hint {
+  display: block;
+  font-size: 12.5px;
+  color: var(--soga);
+  margin-top: 8px;
+}
+
+/* ---------- Estimasi harga (produk kain per meter) ---------- */
+
+.pd-estimasi {
+  flex-basis: 100%;
+  padding: 12px 14px;
+  background: rgba(185,134,47,0.1);
+  border: 1px solid rgba(185,134,47,0.3);
+  border-radius: 6px;
+  font-size: 14.5px;
+  color: var(--indigo);
+}
+
+.pd-estimasi strong {
+  font-size: 16px;
+}
+
+.pd-estimasi-rincian {
+  font-size: 12.5px;
+  color: var(--soga);
+}
+
+/* ---------- Checkbox ukuran (form admin tambah/edit produk) ---------- */
+
+.admin-ukuran-opsi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-ukuran-chip {
+  position: relative;
+}
+
+.admin-ukuran-chip input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+
+.admin-ukuran-chip span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  padding: 9px 14px;
+  border: 1px solid rgba(43,33,24,0.25);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--cream);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-ukuran-chip input:checked + span {
+  background: var(--indigo);
+  border-color: var(--indigo);
+  color: var(--cream);
+}
+
+.admin-ukuran-chip input:focus-visible + span {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .pd-btn-utama {
@@ -1481,6 +1648,22 @@ img { max-width: 100%; display: block; }
   background:rgba(255,255,255,0.1);
 }
 
+.nav-akun {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  color: inherit;
+  gap: 8px;
+}
+
+.nav-akun:hover {
+  background: rgba(255,255,255,0.1);
+}
+
 /* ---------- Keranjang (cart icon di navbar) ---------- */
 
 .nav-keranjang {
@@ -1872,4 +2055,232 @@ img { max-width: 100%; display: block; }
     width: 100%;
     text-align: center;
   }
+}
+/* ---------- Halaman Akun Saya ---------- */
+
+.akun-profil-card {
+  background: linear-gradient(155deg, var(--panel), var(--cream));
+  border: 1px solid rgba(43,33,24,0.08);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 36px;
+  box-shadow: 0 12px 30px rgba(43,33,24,0.08);
+}
+
+.akun-profil-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.akun-avatar {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--indigo);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-size: 24px;
+  font-weight: 600;
+  box-shadow: 0 0 0 4px rgba(185,134,47,0.25);
+}
+
+.akun-nama {
+  margin: 0 0 2px;
+  font-size: 22px;
+}
+
+.akun-email {
+  margin: 0;
+  color: var(--soga);
+  font-size: 14px;
+}
+
+.akun-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.akun-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.akun-info-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(185,134,47,0.15);
+  color: var(--soga);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.akun-info-icon svg { width: 17px; height: 17px; }
+
+.akun-info-label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--soga);
+  margin-bottom: 2px;
+}
+
+.akun-info-value {
+  display: block;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.akun-info-note {
+  font-size: 13px;
+  color: var(--soga);
+  margin: 0 0 22px;
+}
+
+.akun-aksi {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.akun-riwayat-judul {
+  margin-bottom: 4px;
+}
+
+/* ---------- Riwayat pemesanan (halaman akun.php) ---------- */
+.riwayat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.riwayat-card {
+  background: var(--cream);
+  border: 1px solid rgba(43,33,24,0.1);
+  border-left: 4px solid var(--soga);
+  border-radius: 10px;
+  padding: 18px 20px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.riwayat-card:hover {
+  box-shadow: 0 8px 20px rgba(43,33,24,0.1);
+  transform: translateY(-1px);
+}
+
+.riwayat-card.status-pending { border-left-color: var(--gold); }
+.riwayat-card.status-proses,
+.riwayat-card.status-kirim   { border-left-color: var(--indigo); }
+.riwayat-card.status-selesai { border-left-color: #3f7f49; }
+.riwayat-card.status-batal   { border-left-color: #B3261E; }
+
+.riwayat-card-atas {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.riwayat-kode {
+  font-weight: 600;
+  display: block;
+  font-size: 15px;
+}
+
+.riwayat-tanggal {
+  font-size: 12.5px;
+  color: var(--soga);
+}
+
+.riwayat-status-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: rgba(43,33,24,0.06);
+}
+
+.status-pending .riwayat-status-badge { background: rgba(185,134,47,0.18); color: #8a5f1c; }
+.status-proses .riwayat-status-badge,
+.status-kirim .riwayat-status-badge  { background: rgba(31,58,90,0.12); color: var(--indigo); }
+.status-selesai .riwayat-status-badge { background: rgba(63,127,73,0.16); color: #2f6b3a; }
+.status-batal .riwayat-status-badge   { background: rgba(179,38,30,0.12); color: #B3261E; }
+
+.riwayat-card-bawah {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.riwayat-metode {
+  display: block;
+  font-size: 12.5px;
+  color: var(--soga);
+}
+
+.riwayat-total {
+  font-size: 16px;
+}
+
+.riwayat-detail-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--indigo);
+}
+
+.riwayat-detail-toggle svg { transition: transform 0.2s ease; }
+
+.riwayat-detail {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed rgba(43,33,24,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.riwayat-item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.riwayat-item-jumlah {
+  color: var(--soga);
+  font-size: 13px;
+}
+
+.riwayat-item-subtotal {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .akun-profil-card { padding: 22px; }
+  .akun-info-grid { grid-template-columns: 1fr; }
 }

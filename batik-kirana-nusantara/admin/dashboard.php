@@ -3,7 +3,7 @@ require __DIR__ . '/../includes/auth_admin.php';
 require __DIR__ . '/../includes/db.php';
 
 $produkList = $koneksi->query(
-    "SELECT p.id_produk, p.nama_produk, p.harga, p.stok, p.gambar, k.nama_kategori
+    "SELECT p.id_produk, p.nama_produk, p.harga, p.stok, p.gambar, p.ukuran_tersedia, k.nama_kategori
      FROM produk p JOIN kategori k ON p.id_kategori = k.id_kategori
      ORDER BY p.id_produk DESC"
 )->fetchAll(PDO::FETCH_ASSOC);
@@ -50,6 +50,7 @@ $produkList = $koneksi->query(
         <th>Kategori</th>
         <th>Harga</th>
         <th>Stok</th>
+        <th>Ukuran</th>
         <th>Aksi</th>
       </tr>
     </thead>
@@ -69,6 +70,13 @@ $produkList = $koneksi->query(
             <td><?= htmlspecialchars($row['nama_kategori']) ?></td>
             <td>Rp <?= number_format($row['harga'], 0, ',', '.') ?></td>
             <td><?= (int)$row['stok'] ?></td>
+            <td>
+              <?php if (!empty($row['ukuran_tersedia'])): ?>
+                <span style="font-size:12.5px; color:var(--indigo);"><?= htmlspecialchars($row['ukuran_tersedia']) ?></span>
+              <?php else: ?>
+                <span style="font-size:12.5px; color:var(--soga);">—</span>
+              <?php endif; ?>
+            </td>
             <td class="admin-actions">
               <a href="edit.php?id=<?= (int)$row['id_produk'] ?>" class="link-edit">Edit</a>
               <form method="POST" action="hapus.php" onsubmit="return confirm('Yakin ingin menghapus produk ini?');" style="display:inline;">

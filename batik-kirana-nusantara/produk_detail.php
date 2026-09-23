@@ -20,6 +20,22 @@ if (!$produk) {
 $judul_halaman = $produk['nama_produk'];
 $kodeProduk = 'BKN-' . str_pad((string)$produk['id_produk'], 4, '0', STR_PAD_LEFT);
 
+// ---------- Jenis produk: kain per meter vs pakaian jadi (ukuran) ----------
+// - Kain dijual per meter -> input "Panjang (meter)" + kalkulasi harga (dideteksi dari nama)
+// - Ukuran (S/M/L/XL/XXL) -> diambil dari kolom ukuran_tersedia yang diisi admin lewat
+//   Kelola Produk, BUKAN ditebak dari nama, supaya admin punya kendali penuh produk
+//   mana saja yang butuh ukuran.
+$nama_lower = mb_strtolower($produk['nama_produk']);
+
+$produk_kain = str_contains($nama_lower, 'kain');
+
+$daftar_ukuran = !empty($produk['ukuran_tersedia'])
+    ? array_values(array_filter(array_map('trim', explode(',', $produk['ukuran_tersedia']))))
+    : [];
+$produk_baju = !$produk_kain && count($daftar_ukuran) > 0;
+
+$satuan_label = $produk_kain ? 'meter' : 'pcs';
+
 // Produk lain dari kategori yang sama, untuk bagian "Produk Terkait"
 $stmtTerkait = $koneksi->prepare(
     "SELECT id_produk, nama_produk, motif, harga, stok, gambar
@@ -78,7 +94,7 @@ require __DIR__ . '/includes/header.php';
 
           <div class="pd-price-row">
             <span class="pd-price">Rp <?= number_format($produk['harga'], 0, ',', '.') ?></span>
-            <span class="pd-price-unit">/ lembar kain</span>
+            <span class="pd-price-unit">/ <?= $satuan_label ?></span>
           </div>
 
           <div class="pd-tags">
@@ -100,16 +116,64 @@ require __DIR__ . '/includes/header.php';
 
           <div class="pd-purchase-box">
             <?php if ((int)$produk['stok'] > 0): ?>
-              <form method="POST" action="keranjang.php" class="pd-tambah-form">
+              <form method="POST" action="keranjang.php" class="pd-tambah-form" id="formTambahKeranjang">
                 <input type="hidden" name="aksi" value="tambah">
                 <input type="hidden" name="id_produk" value="<?= (int)$produk['id_produk'] ?>">
                 <input type="hidden" name="kembali" value="produk_detail.php?id=<?= (int)$produk['id_produk'] ?>">
+
+                <?php if ($produk_baju): ?>
+                  <div class="pd-ukuran-field">
+                    <label>Pilih Ukuran</label>
+                    <div class="pd-ukuran-options">
+                      <?php foreach ($daftar_ukuran as $i => $u): ?>
+                        <label class="pd-ukuran-pill">
+                          <input type="radio" name="ukuran" value="<?= $u ?>" <?= $i === 0 ? 'checked' : '' ?> required>
+                          <span><?= $u ?></span>
+                        </label>
+                      <?php endforeach; ?>
+                    </div>
+                    <span class="pd-ukuran-hint">Panduan ukuran umum — pastikan sesuai kebutuhanmu sebelum checkout.</span>
+                  </div>
+                <?php endif; ?>
+
                 <div class="pd-qty-field">
-                  <label for="jumlah">Jumlah</label>
-                  <input type="number" id="jumlah" name="jumlah" value="1" min="1" max="<?= (int)$produk['stok'] ?>" class="keranjang-qty-input">
+                  <label for="jumlah"><?= $produk_kain ? 'Panjang (meter)' : 'Jumlah' ?></label>
+                  <input type="number" id="jumlah" name="jumlah" value="1" min="1" max="<?= (int)$produk['stok'] ?>"
+                         step="1" class="keranjang-qty-input"
+                         data-harga-satuan="<?= (float)$produk['harga'] ?>">
+                  <?php if ($produk_kain): ?>
+                    <span class="pd-qty-hint">Contoh: isi 2 kalau butuh 2 meter kain.</span>
+                  <?php endif; ?>
                 </div>
+
+                <?php if ($produk_kain): ?>
+                  <div class="pd-estimasi" id="pdEstimasi">
+                    Estimasi harga: <strong>Rp <?= number_format($produk['harga'], 0, ',', '.') ?></strong>
+                  </div>
+                <?php endif; ?>
+
                 <button type="submit" class="btn btn-gold pd-btn-utama">Tambah ke Keranjang</button>
               </form>
+
+              <?php if ($produk_kain): ?>
+              <script>
+                (function () {
+                  var input = document.getElementById('jumlah');
+                  var out = document.getElementById('pdEstimasi');
+                  if (!input || !out) return;
+                  var harga = parseFloat(input.getAttribute('data-harga-satuan')) || 0;
+                  function format(n) {
+                    return 'Rp ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                  }
+                  function hitung() {
+                    var panjang = parseInt(input.value, 10) || 0;
+                    out.innerHTML = 'Estimasi harga: <strong>' + format(harga * panjang) + '</strong> <span class="pd-estimasi-rincian">(' + panjang + ' meter × ' + format(harga) + ')</span>';
+                  }
+                  input.addEventListener('input', hitung);
+                  hitung();
+                })();
+              </script>
+              <?php endif; ?>
             <?php else: ?>
               <button type="button" class="btn btn-gold pd-btn-utama" disabled>Stok Habis</button>
             <?php endif; ?>

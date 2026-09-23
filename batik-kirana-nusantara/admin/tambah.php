@@ -5,6 +5,7 @@ require __DIR__ . '/../includes/upload_gambar.php';
 
 $error = '';
 $kategoriList = $koneksi->query("SELECT * FROM kategori ORDER BY nama_kategori")->fetchAll(PDO::FETCH_ASSOC);
+$daftar_ukuran_opsi = ['S', 'M', 'L', 'XL', 'XXL'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama_produk = trim($_POST['nama_produk'] ?? '');
@@ -13,6 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $harga = (float)($_POST['harga'] ?? 0);
     $stok = (int)($_POST['stok'] ?? 0);
     $deskripsi = trim($_POST['deskripsi'] ?? '');
+
+    // Ukuran yang dicentang admin (contoh: ["S","M","L"]) -> disimpan sebagai "S,M,L".
+    // Kalau tidak ada yang dicentang, produk dianggap tidak butuh ukuran (mis. aksesoris/kain).
+    $ukuran_dipilih = $_POST['ukuran'] ?? [];
+    $ukuran_dipilih = array_values(array_intersect($daftar_ukuran_opsi, $ukuran_dipilih));
+    $ukuran_tersedia = implode(',', $ukuran_dipilih);
 
     if ($nama_produk === '' || $id_kategori === 0 || $harga <= 0) {
         $error = 'Nama produk, kategori, dan harga wajib diisi dengan benar.';
@@ -25,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nama_file_gambar = $hasilUpload['nama_file'] ?? null;
 
             $stmt = $koneksi->prepare(
-                "INSERT INTO produk (id_kategori, nama_produk, deskripsi, motif, harga, stok, gambar) VALUES (?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO produk (id_kategori, nama_produk, deskripsi, motif, harga, stok, gambar, ukuran_tersedia) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             );
-            if ($stmt->execute([$id_kategori, $nama_produk, $deskripsi, $motif, $harga, $stok, $nama_file_gambar])) {
+            if ($stmt->execute([$id_kategori, $nama_produk, $deskripsi, $motif, $harga, $stok, $nama_file_gambar, $ukuran_tersedia])) {
                 header('Location: dashboard.php');
                 exit;
             } else {
@@ -92,6 +99,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="number" id="stok" name="stok" min="0" required>
       </div>
       <div class="form-field">
+        <label>Ukuran Tersedia (khusus produk pakaian jadi)</label>
+        <div class="admin-ukuran-opsi">
+          <?php foreach ($daftar_ukuran_opsi as $u): ?>
+            <label class="admin-ukuran-chip">
+              <input type="checkbox" name="ukuran[]" value="<?= $u ?>">
+              <span><?= $u ?></span>
+            </label>
+          <?php endforeach; ?>
+        </div>
+        <p style="font-size:12.5px; color:var(--soga); margin:8px 0 0;">Centang ukuran yang tersedia kalau produk ini pakaian jadi (kemeja, blouse, dll). Biarkan kosong untuk produk yang tidak butuh ukuran (kain per meter, aksesoris, dll).</p>
+      </div>
+      <div class="form-field">
         <label for="deskripsi">Deskripsi</label>
         <textarea id="deskripsi" name="deskripsi"></textarea>
       </div>
@@ -100,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="file" id="gambar" name="gambar" accept="image/jpeg,image/png,image/webp">
       </div>
       <button type="submit" class="btn btn-gold">Simpan Produk</button>
-      <a href="dashboard.php" class="btn btn-outline" style="color:var(--indigo); border-color:var(--indigo);">Batal</a>
+      <a href="dashboard.php" class="btn btn-outline">Batal</a>
     </form>
   </div>
 </div>

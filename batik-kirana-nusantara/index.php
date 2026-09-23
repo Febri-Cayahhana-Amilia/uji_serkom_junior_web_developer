@@ -37,7 +37,7 @@ require __DIR__ . '/includes/header.php';
       <p>Seni membatik tradisional yang kami hadirkan kembali dalam busana modern, nyaman untuk setiap momen harianmu.</p>
       <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:24px;">
         <a href="produk.php" class="btn btn-gold">Lihat Semua Produk</a>
-        <a href="tentang.php" class="btn btn-outline">Cerita Kami</a>
+        <a href="tentang.php" class="btn btn-outline-light">Cerita Kami</a>
       </div>
     </div>
     <div class="hero-motif hero-logo-card">

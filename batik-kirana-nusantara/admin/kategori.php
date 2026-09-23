@@ -109,7 +109,7 @@ if ($idEdit > 0) {
         <input type="text" id="nama_kategori" name="nama_kategori" required value="<?= htmlspecialchars($kategoriEdit['nama_kategori']) ?>">
       </div>
       <button type="submit" class="btn btn-gold">Simpan Perubahan</button>
-      <a href="kategori.php" class="btn btn-outline" style="color:var(--indigo); border-color:var(--indigo);">Batal</a>
+      <a href="kategori.php" class="btn btn-outline">Batal</a>
     </form>
   <?php else: ?>
     <form method="POST" action="kategori.php" class="form-card" style="margin-bottom:32px;">

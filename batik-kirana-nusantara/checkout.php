@@ -1,8 +1,11 @@
 <?php
 require __DIR__ . '/includes/db.php';
 require __DIR__ . '/includes/keranjang.php';
+require __DIR__ . '/includes/auth_pembeli.php';
 $base_url = '';
 $judul_halaman = 'Checkout';
+
+$pembeli = pembeli_saat_ini($koneksi); // null kalau belum login — checkout manual tetap jalan seperti biasa
 
 $keranjang = keranjang_isi($koneksi);
 $error = '';
@@ -14,10 +17,19 @@ if (empty($keranjang['items']) && $_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nama = trim($_POST['nama_pelanggan'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $telepon = trim($_POST['telepon'] ?? '');
-    $alamat = trim($_POST['alamat'] ?? '');
+    if ($pembeli) {
+        // ---------- Pembeli sudah login: pakai data akun, jangan percaya form ----------
+        $nama = $pembeli['nama_pembeli'];
+        $email = $pembeli['email'];
+        $telepon = $pembeli['telepon'];
+        $alamat = $pembeli['alamat'];
+    } else {
+        // ---------- Checkout manual (tanpa login), seperti sebelumnya ----------
+        $nama = trim($_POST['nama_pelanggan'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $telepon = trim($_POST['telepon'] ?? '');
+        $alamat = trim($_POST['alamat'] ?? '');
+    }
     $metode = trim($_POST['metode_pembayaran'] ?? '');
 
     // ---------- Validasi form (wajib) ----------
@@ -48,10 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $kode_pesanan = 'BKN-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
 
             $stmtPesanan = $koneksi->prepare(
-                "INSERT INTO pesanan (kode_pesanan, nama_pelanggan, email, telepon, alamat, metode_pembayaran, total_harga, status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 'Menunggu Pembayaran') RETURNING id_pesanan"
+                "INSERT INTO pesanan (kode_pesanan, id_pembeli, nama_pelanggan, email, telepon, alamat, metode_pembayaran, total_harga, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Menunggu Pembayaran') RETURNING id_pesanan"
             );
-            $stmtPesanan->execute([$kode_pesanan, $nama, $email, $telepon, $alamat, $metode, $keranjang['total']]);
+            $stmtPesanan->execute([
+                $kode_pesanan, $pembeli['id_pembeli'] ?? null, $nama, $email, $telepon, $alamat, $metode, $keranjang['total'],
+            ]);
             $id_pesanan = $stmtPesanan->fetchColumn();
 
             $stmtDetail = $koneksi->prepare(
@@ -133,7 +147,15 @@ require __DIR__ . '/includes/header.php';
     <?php else: ?>
 
       <h2 class="section-title">Checkout</h2>
-      <p class="section-sub">Lengkapi data pengiriman dan pilih metode pembayaran.</p>
+      <p class="section-sub">
+        <?php if ($pembeli): ?>
+          Data pengirimanmu sudah otomatis terisi dari akun. Tinggal pilih metode pembayaran.
+        <?php else: ?>
+          Lengkapi data pengiriman dan pilih metode pembayaran.
+          <a href="login.php?lanjut=checkout.php" style="color:var(--soga); text-decoration:underline;">Sudah punya akun? Login di sini</a>
+          supaya lebih cepat lain kali.
+        <?php endif; ?>
+      </p>
 
       <?php if ($error): ?>
         <p class="alert alert-error"><?= htmlspecialchars($error) ?></p>
@@ -141,26 +163,44 @@ require __DIR__ . '/includes/header.php';
 
       <div class="checkout-grid">
         <form method="POST" action="checkout.php" class="form-card" id="form-checkout" novalidate>
-          <div class="form-field">
-            <label for="nama_pelanggan">Nama Lengkap</label>
-            <input type="text" id="nama_pelanggan" name="nama_pelanggan" required value="<?= htmlspecialchars($val_nama) ?>">
-            <small class="form-error" id="error-nama_pelanggan"></small>
-          </div>
-          <div class="form-field">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email" required value="<?= htmlspecialchars($val_email) ?>">
-            <small class="form-error" id="error-email"></small>
-          </div>
-          <div class="form-field">
-            <label for="telepon">Nomor Telepon / WhatsApp</label>
-            <input type="text" id="telepon" name="telepon" required placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($val_telepon) ?>">
-            <small class="form-error" id="error-telepon"></small>
-          </div>
-          <div class="form-field">
-            <label for="alamat">Alamat Pengiriman</label>
-            <textarea id="alamat" name="alamat" required><?= htmlspecialchars($val_alamat) ?></textarea>
-            <small class="form-error" id="error-alamat"></small>
-          </div>
+
+          <?php if ($pembeli): ?>
+            <!-- ---------- Sudah login: tampilkan data akun (read-only), tidak perlu isi ulang ---------- -->
+            <div class="checkout-akun-ringkas">
+              <ul class="modal-ringkasan" style="margin:0 0 20px;">
+                <li><span>Nama</span><strong><?= htmlspecialchars($pembeli['nama_pembeli']) ?></strong></li>
+                <li><span>Email</span><strong><?= htmlspecialchars($pembeli['email']) ?></strong></li>
+                <li><span>Telepon</span><strong><?= htmlspecialchars($pembeli['telepon']) ?></strong></li>
+                <li><span>Alamat</span><strong><?= htmlspecialchars($pembeli['alamat']) ?></strong></li>
+              </ul>
+              <p style="font-size:13.5px; margin-top:-10px; margin-bottom:20px;">
+                Bukan kamu? <a href="logout_pembeli.php" style="color:var(--soga); text-decoration:underline;">Keluar dari akun</a>
+              </p>
+            </div>
+          <?php else: ?>
+            <!-- ---------- Belum login: form manual seperti biasa ---------- -->
+            <div class="form-field">
+              <label for="nama_pelanggan">Nama Lengkap</label>
+              <input type="text" id="nama_pelanggan" name="nama_pelanggan" required value="<?= htmlspecialchars($val_nama) ?>">
+              <small class="form-error" id="error-nama_pelanggan"></small>
+            </div>
+            <div class="form-field">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" required value="<?= htmlspecialchars($val_email) ?>">
+              <small class="form-error" id="error-email"></small>
+            </div>
+            <div class="form-field">
+              <label for="telepon">Nomor Telepon / WhatsApp</label>
+              <input type="text" id="telepon" name="telepon" required placeholder="08xxxxxxxxxx" value="<?= htmlspecialchars($val_telepon) ?>">
+              <small class="form-error" id="error-telepon"></small>
+            </div>
+            <div class="form-field">
+              <label for="alamat">Alamat Pengiriman</label>
+              <textarea id="alamat" name="alamat" required><?= htmlspecialchars($val_alamat) ?></textarea>
+              <small class="form-error" id="error-alamat"></small>
+            </div>
+          <?php endif; ?>
+
           <div class="form-field">
             <label for="metode_pembayaran">Metode Pembayaran</label>
             <select id="metode_pembayaran" name="metode_pembayaran" required>
@@ -203,10 +243,10 @@ require __DIR__ . '/includes/header.php';
     <h3>Konfirmasi Pesanan</h3>
     <p>Cek dulu data di bawah ini sebelum pesanan dibuat — pesanan tidak bisa diubah setelah dikirim.</p>
     <ul class="modal-ringkasan">
-      <li><span>Nama</span><strong id="modal-nama"></strong></li>
-      <li><span>Email</span><strong id="modal-email"></strong></li>
-      <li><span>Telepon</span><strong id="modal-telepon"></strong></li>
-      <li><span>Alamat</span><strong id="modal-alamat"></strong></li>
+      <li><span>Nama</span><strong id="modal-nama"><?= $pembeli ? htmlspecialchars($pembeli['nama_pembeli']) : '' ?></strong></li>
+      <li><span>Email</span><strong id="modal-email"><?= $pembeli ? htmlspecialchars($pembeli['email']) : '' ?></strong></li>
+      <li><span>Telepon</span><strong id="modal-telepon"><?= $pembeli ? htmlspecialchars($pembeli['telepon']) : '' ?></strong></li>
+      <li><span>Alamat</span><strong id="modal-alamat"><?= $pembeli ? htmlspecialchars($pembeli['alamat']) : '' ?></strong></li>
       <li><span>Metode Pembayaran</span><strong id="modal-metode"></strong></li>
       <li class="modal-ringkasan-total"><span>Total Bayar</span><strong>Rp <?= number_format($keranjang['total'], 0, ',', '.') ?></strong></li>
     </ul>
@@ -250,24 +290,28 @@ require __DIR__ . '/includes/header.php';
       if (!fieldFokusPertama) fieldFokusPertama = document.getElementById(idField);
     };
 
-    const nama = form.nama_pelanggan.value.trim();
-    const email = form.email.value.trim();
-    const telepon = form.telepon.value.trim();
-    const alamat = form.alamat.value.trim();
-    const metode = form.metode_pembayaran.value.trim();
+    // Field data pelanggan hanya ada di form kalau belum login (checkout manual)
+    if (form.nama_pelanggan) {
+      const nama = form.nama_pelanggan.value.trim();
+      const email = form.email.value.trim();
+      const telepon = form.telepon.value.trim();
+      const alamat = form.alamat.value.trim();
 
-    if (nama === '') tandaiSalah('nama_pelanggan', 'Nama lengkap wajib diisi.');
-    if (email === '') {
-      tandaiSalah('email', 'Email wajib diisi.');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      tandaiSalah('email', 'Format email tidak valid.');
+      if (nama === '') tandaiSalah('nama_pelanggan', 'Nama lengkap wajib diisi.');
+      if (email === '') {
+        tandaiSalah('email', 'Email wajib diisi.');
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        tandaiSalah('email', 'Format email tidak valid.');
+      }
+      if (telepon === '') {
+        tandaiSalah('telepon', 'Nomor telepon wajib diisi.');
+      } else if (!/^[0-9+\-\s]{8,20}$/.test(telepon)) {
+        tandaiSalah('telepon', 'Format nomor telepon tidak valid (8-20 digit).');
+      }
+      if (alamat === '') tandaiSalah('alamat', 'Alamat pengiriman wajib diisi.');
     }
-    if (telepon === '') {
-      tandaiSalah('telepon', 'Nomor telepon wajib diisi.');
-    } else if (!/^[0-9+\-\s]{8,20}$/.test(telepon)) {
-      tandaiSalah('telepon', 'Format nomor telepon tidak valid (8-20 digit).');
-    }
-    if (alamat === '') tandaiSalah('alamat', 'Alamat pengiriman wajib diisi.');
+
+    const metode = form.metode_pembayaran.value.trim();
     if (metode === '') tandaiSalah('metode_pembayaran', 'Pilih salah satu metode pembayaran.');
 
     if (!valid && fieldFokusPertama) {
@@ -279,10 +323,14 @@ require __DIR__ . '/includes/header.php';
   };
 
   const isiRingkasanModal = () => {
-    document.getElementById('modal-nama').textContent = form.nama_pelanggan.value.trim();
-    document.getElementById('modal-email').textContent = form.email.value.trim();
-    document.getElementById('modal-telepon').textContent = form.telepon.value.trim();
-    document.getElementById('modal-alamat').textContent = form.alamat.value.trim();
+    // Kalau field-nya ada (belum login), ambil dari form. Kalau tidak ada
+    // (sudah login), biarkan — sudah diisi PHP langsung dari data akun.
+    if (form.nama_pelanggan) {
+      document.getElementById('modal-nama').textContent = form.nama_pelanggan.value.trim();
+      document.getElementById('modal-email').textContent = form.email.value.trim();
+      document.getElementById('modal-telepon').textContent = form.telepon.value.trim();
+      document.getElementById('modal-alamat').textContent = form.alamat.value.trim();
+    }
     document.getElementById('modal-metode').textContent = form.metode_pembayaran.value.trim();
   };
 

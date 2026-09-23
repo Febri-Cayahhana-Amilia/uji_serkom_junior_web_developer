@@ -5,6 +5,7 @@ require __DIR__ . '/../includes/upload_gambar.php';
 
 $id_produk = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $error = '';
+$daftar_ukuran_opsi = ['S', 'M', 'L', 'XL', 'XXL'];
 
 $kategoriList = $koneksi->query("SELECT * FROM kategori ORDER BY nama_kategori")->fetchAll(PDO::FETCH_ASSOC);
 
@@ -34,6 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stok = (int)($_POST['stok'] ?? 0);
         $deskripsi = trim($_POST['deskripsi'] ?? '');
 
+        // Ukuran yang dicentang admin -> disimpan sebagai "S,M,L". Kosong = tidak butuh ukuran.
+        $ukuran_dipilih = $_POST['ukuran'] ?? [];
+        $ukuran_dipilih = array_values(array_intersect($daftar_ukuran_opsi, $ukuran_dipilih));
+        $ukuran_tersedia = implode(',', $ukuran_dipilih);
+
         if ($nama_produk === '' || $id_kategori === 0 || $harga <= 0) {
             $error = 'Nama produk, kategori, dan harga wajib diisi dengan benar.';
         } else {
@@ -47,9 +53,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 try {
                     $stmtUpdate = $koneksi->prepare(
-                        "UPDATE produk SET id_kategori=?, nama_produk=?, deskripsi=?, motif=?, harga=?, stok=?, gambar=? WHERE id_produk=?"
+                        "UPDATE produk SET id_kategori=?, nama_produk=?, deskripsi=?, motif=?, harga=?, stok=?, gambar=?, ukuran_tersedia=? WHERE id_produk=?"
                     );
-                    $stmtUpdate->execute([$id_kategori, $nama_produk, $deskripsi, $motif, $harga, $stok, $nama_file_gambar, $id_produk]);
+                    $stmtUpdate->execute([$id_kategori, $nama_produk, $deskripsi, $motif, $harga, $stok, $nama_file_gambar, $ukuran_tersedia, $id_produk]);
 
                     if ($stmtUpdate->rowCount() === 0) {
                         // Query jalan tanpa error, tapi tidak ada baris yang benar-benar
@@ -83,10 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_POST['harga'] = $harga ?? ($_POST['harga'] ?? '');
         $_POST['stok'] = $stok ?? ($_POST['stok'] ?? '');
         $_POST['deskripsi'] = $deskripsi ?? ($_POST['deskripsi'] ?? '');
+        $_POST['ukuran'] = $ukuran_dipilih ?? ($_POST['ukuran'] ?? []);
     }
 } else {
     // Isi form dengan data lama saat pertama dibuka
     $_POST = $produk;
+    $_POST['ukuran'] = !empty($produk['ukuran_tersedia'])
+        ? explode(',', $produk['ukuran_tersedia'])
+        : [];
 }
 ?>
 <!DOCTYPE html>
@@ -145,6 +155,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="number" id="stok" name="stok" min="0" value="<?= htmlspecialchars($_POST['stok'] ?? '') ?>" required>
       </div>
       <div class="form-field">
+        <label>Ukuran Tersedia (khusus produk pakaian jadi)</label>
+        <div class="admin-ukuran-opsi">
+          <?php $ukuran_terpilih = $_POST['ukuran'] ?? []; ?>
+          <?php foreach ($daftar_ukuran_opsi as $u): ?>
+            <label class="admin-ukuran-chip">
+              <input type="checkbox" name="ukuran[]" value="<?= $u ?>" <?= in_array($u, $ukuran_terpilih, true) ? 'checked' : '' ?>>
+              <span><?= $u ?></span>
+            </label>
+          <?php endforeach; ?>
+        </div>
+        <p style="font-size:12.5px; color:var(--soga); margin:8px 0 0;">Centang ukuran yang tersedia kalau produk ini pakaian jadi (kemeja, blouse, dll). Biarkan kosong untuk produk yang tidak butuh ukuran (kain per meter, aksesoris, dll).</p>
+      </div>
+      <div class="form-field">
         <label for="deskripsi">Deskripsi</label>
         <textarea id="deskripsi" name="deskripsi"><?= htmlspecialchars($_POST['deskripsi'] ?? '') ?></textarea>
       </div>
@@ -160,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p style="font-size:12.5px; color:var(--soga); margin:6px 0 0;">Kosongkan kalau tidak ingin mengganti foto. Maks 2MB.</p>
       </div>
       <button type="submit" class="btn btn-gold">Simpan Perubahan</button>
-      <a href="dashboard.php" class="btn btn-outline" style="color:var(--indigo); border-color:var(--indigo);">Batal</a>
+      <a href="dashboard.php" class="btn btn-outline">Batal</a>
     </form>
   </div>
 </div>

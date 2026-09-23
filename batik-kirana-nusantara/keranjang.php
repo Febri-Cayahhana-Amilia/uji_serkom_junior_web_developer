@@ -8,17 +8,19 @@ $judul_halaman = 'Keranjang Belanja';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $aksi = $_POST['aksi'] ?? '';
     $id_produk = (int)($_POST['id_produk'] ?? 0);
+    $kunci = trim($_POST['kunci'] ?? '');
+    $ukuran = trim($_POST['ukuran'] ?? '');
     $pesan_status = '';
 
     if ($aksi === 'tambah' && $id_produk > 0) {
         $jumlah = max(1, (int)($_POST['jumlah'] ?? 1));
-        keranjang_tambah($id_produk, $jumlah);
+        keranjang_tambah($id_produk, $jumlah, $ukuran);
         $pesan_status = 'ditambahkan';
-    } elseif ($aksi === 'ubah' && $id_produk > 0) {
+    } elseif ($aksi === 'ubah' && $kunci !== '') {
         $jumlah = (int)($_POST['jumlah'] ?? 0);
-        keranjang_ubah_jumlah($id_produk, $jumlah);
-    } elseif ($aksi === 'hapus' && $id_produk > 0) {
-        keranjang_hapus($id_produk);
+        keranjang_ubah_jumlah($kunci, $jumlah);
+    } elseif ($aksi === 'hapus' && $kunci !== '') {
+        keranjang_hapus($kunci);
     } elseif ($aksi === 'kosongkan') {
         keranjang_kosongkan();
     }
@@ -77,7 +79,7 @@ require __DIR__ . '/includes/header.php';
                 <td>
                   <form method="POST" action="keranjang.php" class="keranjang-qty-form">
                     <input type="hidden" name="aksi" value="ubah">
-                    <input type="hidden" name="id_produk" value="<?= (int)$item['id_produk'] ?>">
+                    <input type="hidden" name="kunci" value="<?= htmlspecialchars($item['kunci']) ?>">
                     <input type="number" name="jumlah" value="<?= (int)$item['jumlah'] ?>" min="1" max="<?= (int)$item['stok'] ?>" class="keranjang-qty-input">
                     <button type="submit" class="btn btn-outline btn-kecil">Perbarui</button>
                   </form>
@@ -86,7 +88,7 @@ require __DIR__ . '/includes/header.php';
                 <td>
                   <form method="POST" action="keranjang.php">
                     <input type="hidden" name="aksi" value="hapus">
-                    <input type="hidden" name="id_produk" value="<?= (int)$item['id_produk'] ?>">
+                    <input type="hidden" name="kunci" value="<?= htmlspecialchars($item['kunci']) ?>">
                     <button type="submit" class="link-hapus keranjang-hapus-btn">Hapus</button>
                   </form>
                 </td>
