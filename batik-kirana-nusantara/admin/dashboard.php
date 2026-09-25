@@ -199,6 +199,115 @@ function renderGrafikDonat(array $rows): void
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard Admin — Batik Kirana Nusantara</title>
 <link rel="stylesheet" href="../css/style.css">
+<style>
+/* ==================== Modal Konfirmasi Custom (pengganti confirm() bawaan browser) ==================== */
+.modal-konfirmasi-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.55);
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 16px;
+}
+.modal-konfirmasi-overlay.aktif {
+  display: flex;
+}
+.modal-konfirmasi-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 26px 28px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.28);
+  animation: modalKonfirmasiMuncul 0.16s ease-out;
+  text-align: left;
+}
+@keyframes modalKonfirmasiMuncul {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-konfirmasi-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #FBEAE6;
+  color: #A3402C;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.modal-konfirmasi-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.modal-konfirmasi-box h4 {
+  margin: 0 0 8px;
+  color: var(--indigo, #1F3A5A);
+  font-size: 17px;
+}
+.modal-konfirmasi-box p {
+  margin: 0 0 22px;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.modal-konfirmasi-aksi {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.modal-konfirmasi-aksi .btn {
+  cursor: pointer;
+  border: none;
+  font-size: 14px;
+  padding: 9px 18px;
+  border-radius: 7px;
+}
+.btn-batal-konfirmasi {
+  background: #eee;
+  color: #333;
+}
+.btn-batal-konfirmasi:hover {
+  background: #e0e0e0;
+}
+.btn-hapus-konfirmasi {
+  background: #A3402C;
+  color: #fff;
+}
+.btn-hapus-konfirmasi:hover {
+  background: #8c3524;
+}
+
+/* ==================== Notifikasi Toast (pengganti alert bawaan browser, opsional) ==================== */
+.toast-notif-wrap {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.toast-notif {
+  background: #1F3A5A;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  min-width: 240px;
+  animation: toastMasuk 0.2s ease-out;
+}
+.toast-notif.sukses { background: #2E7D4F; }
+.toast-notif.gagal  { background: #A3402C; }
+@keyframes toastMasuk {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+</style>
 </head>
 <body class="admin-shell">
 
@@ -369,9 +478,12 @@ function renderGrafikDonat(array $rows): void
             </td>
             <td class="admin-actions">
               <a href="edit.php?id=<?= (int)$row['id_produk'] ?>" class="link-edit">Edit</a>
-              <form method="POST" action="hapus.php" onsubmit="return confirm('Yakin ingin menghapus produk ini?');" style="display:inline;">
+              <form method="POST" action="hapus.php" id="form-hapus-<?= (int)$row['id_produk'] ?>" style="display:inline;">
                 <input type="hidden" name="id" value="<?= (int)$row['id_produk'] ?>">
-                <button type="submit" class="link-hapus keranjang-hapus-btn">Hapus</button>
+                <button type="button" class="link-hapus keranjang-hapus-btn"
+                        onclick="konfirmasiHapus('form-hapus-<?= (int)$row['id_produk'] ?>', '<?= htmlspecialchars(addslashes($row['nama_produk'])) ?>')">
+                  Hapus
+                </button>
               </form>
             </td>
           </tr>
@@ -382,6 +494,69 @@ function renderGrafikDonat(array $rows): void
     </tbody>
   </table>
 </div>
+
+<!-- ==================== Modal Konfirmasi Hapus (pengganti confirm() bawaan browser) ==================== -->
+<div id="modal-konfirmasi" class="modal-konfirmasi-overlay">
+  <div class="modal-konfirmasi-box">
+    <div class="modal-konfirmasi-icon">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 9v4m0 4h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 003.5 20.5h17a1.5 1.5 0 001.39-2.46L13.71 3.86a1.5 1.5 0 00-2.42 0z"
+              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h4>Konfirmasi Hapus Produk</h4>
+    <p id="modal-konfirmasi-pesan">Yakin ingin menghapus produk ini?</p>
+    <div class="modal-konfirmasi-aksi">
+      <button type="button" class="btn btn-batal-konfirmasi" onclick="tutupModalKonfirmasi()">Batal</button>
+      <button type="button" class="btn btn-hapus-konfirmasi" onclick="submitModalKonfirmasi()">Ya, Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tempat munculnya notifikasi toast, jika suatu saat dibutuhkan -->
+<div class="toast-notif-wrap" id="toast-notif-wrap"></div>
+
+<script>
+let formTargetHapus = null;
+
+function konfirmasiHapus(formId, namaProduk) {
+  formTargetHapus = document.getElementById(formId);
+  document.getElementById('modal-konfirmasi-pesan').textContent =
+    'Yakin ingin menghapus produk "' + namaProduk + '"? Tindakan ini tidak dapat dibatalkan.';
+  document.getElementById('modal-konfirmasi').classList.add('aktif');
+}
+
+function tutupModalKonfirmasi() {
+  formTargetHapus = null;
+  document.getElementById('modal-konfirmasi').classList.remove('aktif');
+}
+
+function submitModalKonfirmasi() {
+  if (formTargetHapus) {
+    formTargetHapus.submit();
+  }
+}
+
+// Tutup modal saat klik di luar kotak dialog
+document.getElementById('modal-konfirmasi').addEventListener('click', function (e) {
+  if (e.target === this) tutupModalKonfirmasi();
+});
+
+// Tutup modal dengan tombol Escape
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') tutupModalKonfirmasi();
+});
+
+// Fungsi bantu opsional: tampilkan notifikasi toast di dalam halaman
+function tampilkanToast(pesan, jenis) {
+  const wrap = document.getElementById('toast-notif-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast-notif ' + (jenis || '');
+  el.textContent = pesan;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+</script>
 
 </body>
 </html>
