@@ -28,6 +28,12 @@ $ikon_kategori = [
 require __DIR__ . '/includes/header.php';
 ?>
 
+<?php if (isset($_GET['ditambahkan'])): ?>
+  <div class="wrap" style="padding-top:20px;">
+    <p class="alert alert-success">Produk berhasil ditambahkan ke keranjang. <a href="keranjang.php" style="text-decoration:underline;">Lihat keranjang</a></p>
+  </div>
+<?php endif; ?>
+
 <header class="hero" style="padding-bottom: 60px;">
   <div class="hero-pattern" aria-hidden="true"></div>
   <div class="wrap hero-grid">
@@ -90,7 +96,20 @@ require __DIR__ . '/includes/header.php';
               <h3><?= htmlspecialchars($row['nama_produk']) ?></h3>
               <span class="produk-harga">Rp <?= number_format($row['harga'], 0, ',', '.') ?></span>
               <span class="produk-stok"><?= (int)$row['stok'] ?> stok tersedia</span>
-              <a href="produk_detail.php?id=<?= (int)$row['id_produk'] ?>" class="btn btn-gold">Lihat Detail</a>
+              <div class="produk-aksi">
+                <a href="produk_detail.php?id=<?= (int)$row['id_produk'] ?>" class="btn btn-outline btn-kecil">Lihat Detail</a>
+                <?php if ((int)$row['stok'] > 0): ?>
+                  <form method="POST" action="keranjang.php" class="tambah-keranjang-form">
+                    <input type="hidden" name="aksi" value="tambah">
+                    <input type="hidden" name="id_produk" value="<?= (int)$row['id_produk'] ?>">
+                    <input type="hidden" name="jumlah" value="1">
+                    <input type="hidden" name="kembali" value="index.php">
+                    <button type="submit" class="btn btn-gold btn-kecil">+ Keranjang</button>
+                  </form>
+                <?php else: ?>
+                  <button type="button" class="btn btn-gold btn-kecil" disabled>Stok Habis</button>
+                <?php endif; ?>
+              </div>
             </div>
           </div>
         <?php endforeach; ?>

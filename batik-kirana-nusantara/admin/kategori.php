@@ -87,7 +87,7 @@ if ($idEdit > 0) {
   </div>
 </div>
 <div class="wrap admin-subnav">
-  <a href="dashboard.php">Kelola Produk</a>
+  <a href="dashboard.php">Dashboard</a>
   <a href="kategori.php" class="admin-subnav-aktif">Kelola Kategori</a>
   <a href="pesanan.php">Pesanan Masuk</a>
   <a href="transaksi_baru.php">Transaksi Manual</a>

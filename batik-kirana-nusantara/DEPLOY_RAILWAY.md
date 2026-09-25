@@ -85,6 +85,7 @@ lama sempat tertulis polos di `includes/db.php` sebelum diperbaiki.
 
 - [ ] Volume terpasang di `/app/uploads/produk`
 - [ ] Schema `.sql` sudah dijalankan ke Postgres Railway
+- [ ] **Migrasi `database/tambah_pembayaran_kembalian.sql` sudah dijalankan** (kolom `pembayaran` & `kembalian` di tabel `pesanan`, dipakai fitur cetak struk transaksi manual)
 - [ ] Akun admin dibuat lewat `railway run`, bukan lewat URL publik
 - [ ] `database/batik_kirana.sql` & `database/setup_admin.php` dihapus dari project
 - [ ] `DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASS` diisi di tab Variables Railway

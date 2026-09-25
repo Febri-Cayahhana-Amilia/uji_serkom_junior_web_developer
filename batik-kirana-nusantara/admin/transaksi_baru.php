@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../includes/auth_admin.php';
 require __DIR__ . '/../includes/db.php';
+require __DIR__ . '/../includes/metode_bayar.php';
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 if (!isset($_SESSION['admin_keranjang']) || !is_array($_SESSION['admin_keranjang'])) {
@@ -63,8 +64,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $email = trim($_POST['email'] ?? '');
         $telepon = trim($_POST['telepon'] ?? '');
         $alamat = trim($_POST['alamat'] ?? '');
-        $metode = trim($_POST['metode_pembayaran'] ?? '');
+        $metodeUtama = trim($_POST['metode_pembayaran'] ?? '');
+        $metodeDetail = trim($_POST['metode_detail'] ?? '');
+        $metode = $metodeUtama;
         $status = trim($_POST['status'] ?? '');
+        $pembayaranRaw = trim($_POST['pembayaran'] ?? '');
+        $pembayaran = (float)str_replace(['.', ','], ['', '.'], $pembayaranRaw);
+
+        // ---------- Hitung total dulu (dibutuhkan untuk validasi pembayaran) ----------
+        $total = 0;
+        foreach ($_SESSION['admin_keranjang'] as $id_produk => $jumlah) {
+            if (isset($produkById[$id_produk])) {
+                $total += $jumlah * (float)$produkById[$id_produk]['harga'];
+            }
+        }
 
         // ---------- Validasi form (wajib) ----------
         if ($nama === '' || $email === '' || $telepon === '' || $alamat === '' || $metode === '' || $status === '') {
@@ -73,12 +86,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Format email tidak valid.';
         } elseif (!preg_match('/^[0-9+\-\s]{1,20}$/', $telepon) && $telepon !== '-') {
             $error = 'Format nomor telepon tidak valid.';
-        } elseif (!in_array($metode, $metodePilihan, true)) {
+        } elseif (!in_array($metodeUtama, $metodePilihan, true)) {
             $error = 'Metode pembayaran tidak valid.';
+        } elseif (($metode = metode_gabung($metodeUtama, $metodeDetail)) === null) {
+            $error = 'Pilih bank / e-wallet yang dipakai untuk pembayaran.';
         } elseif (!in_array($status, $statusPilihan, true)) {
             $error = 'Status pesanan tidak valid.';
         } elseif (empty($_SESSION['admin_keranjang'])) {
             $error = 'Belum ada produk yang dipilih untuk transaksi ini.';
+        } elseif ($pembayaranRaw === '' || $pembayaran <= 0) {
+            $error = 'Jumlah uang pembayaran wajib diisi.';
+        } elseif ($pembayaran < $total) {
+            $error = 'Uang pembayaran (Rp ' . number_format($pembayaran, 0, ',', '.') . ') kurang dari total belanja (Rp ' . number_format($total, 0, ',', '.') . '). Transaksi tidak dapat diproses.';
         } else {
             // ---------- Cek ulang stok sebelum transaksi ----------
             foreach ($_SESSION['admin_keranjang'] as $id_produk => $jumlah) {
@@ -93,18 +112,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $koneksi->beginTransaction();
 
-                $total = 0;
-                foreach ($_SESSION['admin_keranjang'] as $id_produk => $jumlah) {
-                    $total += $jumlah * (float)$produkById[$id_produk]['harga'];
-                }
+                $kembalian = $pembayaran - $total;
 
                 $kode_pesanan = 'BKN-' . date('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
 
                 $stmtPesanan = $koneksi->prepare(
-                    "INSERT INTO pesanan (kode_pesanan, nama_pelanggan, email, telepon, alamat, metode_pembayaran, total_harga, status)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id_pesanan"
+                    "INSERT INTO pesanan (kode_pesanan, nama_pelanggan, email, telepon, alamat, metode_pembayaran, total_harga, status, uang_diterima, kembalian)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id_pesanan"
                 );
-                $stmtPesanan->execute([$kode_pesanan, $nama, $email, $telepon, $alamat, $metode, $total, $status]);
+                $stmtPesanan->execute([$kode_pesanan, $nama, $email, $telepon, $alamat, $metode, $total, $status, $pembayaran, $kembalian]);
                 $id_pesanan = $stmtPesanan->fetchColumn();
 
                 $stmtDetail = $koneksi->prepare(
@@ -126,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $koneksi->commit();
                 $_SESSION['admin_keranjang'] = [];
 
-                header('Location: pesanan.php?dibuat=' . urlencode($kode_pesanan));
+                header('Location: struk.php?id=' . (int)$id_pesanan . '&baru=1');
                 exit;
             } catch (Exception $e) {
                 $koneksi->rollBack();
@@ -178,7 +194,7 @@ foreach ($_SESSION['admin_keranjang'] as $id_produk => $jumlah) {
 </div>
 
 <div class="wrap admin-subnav">
-  <a href="dashboard.php">Kelola Produk</a>
+  <a href="dashboard.php">Dashboard</a>
   <a href="kategori.php">Kelola Kategori</a>
   <a href="pesanan.php">Pesanan Masuk</a>
   <a href="transaksi_baru.php" class="admin-subnav-aktif">Transaksi Manual</a>
@@ -291,6 +307,7 @@ foreach ($_SESSION['admin_keranjang'] as $id_produk => $jumlah) {
             <?php endforeach; ?>
           </select>
         </div>
+        <?php metode_render_sub('metode_pembayaran', $_POST['metode_detail'] ?? ''); ?>
         <div class="form-field">
           <label for="status">Status Pesanan</label>
           <select id="status" name="status" required>
@@ -300,14 +317,42 @@ foreach ($_SESSION['admin_keranjang'] as $id_produk => $jumlah) {
           </select>
         </div>
 
+        <div class="form-field">
+          <label for="pembayaran">Uang Pembayaran (Rp)</label>
+          <input type="number" id="pembayaran" name="pembayaran" min="0" step="500"
+                 value="<?= htmlspecialchars($_POST['pembayaran'] ?? '') ?>"
+                 data-total="<?= (int)$totalKeranjang ?>" required>
+        </div>
+
         <div class="checkout-total-row">
-          <span>Total</span>
+          <span>Total Belanja</span>
           <strong>Rp <?= number_format($totalKeranjang, 0, ',', '.') ?></strong>
+        </div>
+        <div class="checkout-total-row" id="baris-kembalian" style="font-size:14.5px;">
+          <span>Kembalian</span>
+          <strong id="nilai-kembalian">Rp 0</strong>
         </div>
 
         <button type="submit" class="btn btn-gold" style="width:100%; margin-top:16px;" <?= empty($itemKeranjang) ? 'disabled' : '' ?>>
-          Buat Transaksi
+          Buat Transaksi &amp; Cetak Struk
         </button>
+        <script>
+        (() => {
+          const inputBayar = document.getElementById('pembayaran');
+          const labelKembalian = document.getElementById('nilai-kembalian');
+          if (!inputBayar || !labelKembalian) return;
+          const total = parseFloat(inputBayar.dataset.total || '0');
+          const formatRp = (n) => 'Rp ' + Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+          const perbarui = () => {
+            const bayar = parseFloat(inputBayar.value || '0');
+            const kembali = bayar - total;
+            labelKembalian.textContent = formatRp(Math.max(kembali, 0));
+            labelKembalian.style.color = (bayar > 0 && bayar < total) ? '#A3402C' : '';
+          };
+          inputBayar.addEventListener('input', perbarui);
+          perbarui();
+        })();
+        </script>
       </form>
     </div>
 

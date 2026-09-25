@@ -7,6 +7,190 @@ $produkList = $koneksi->query(
      FROM produk p JOIN kategori k ON p.id_kategori = k.id_kategori
      ORDER BY p.id_produk DESC"
 )->fetchAll(PDO::FETCH_ASSOC);
+
+// ---------- Statistik ringkas dashboard (semua dihitung langsung dari database) ----------
+$totalProduk = (int) $koneksi->query("SELECT COUNT(*) FROM produk")->fetchColumn();
+$totalKategoriDb = (int) $koneksi->query("SELECT COUNT(*) FROM kategori")->fetchColumn();
+$totalTransaksiDb = (int) $koneksi->query("SELECT COUNT(*) FROM pesanan")->fetchColumn();
+$totalPenjualanDb = (float) $koneksi->query("SELECT COALESCE(SUM(total_harga),0) FROM pesanan")->fetchColumn();
+$totalBarangTerjualDb = (int) $koneksi->query("SELECT COALESCE(SUM(jumlah),0) FROM detail_pesanan")->fetchColumn();
+
+// ---------- Tren 7 hari terakhir vs 7 hari sebelumnya ----------
+$stmtTren = $koneksi->prepare(
+    "SELECT
+        COALESCE(SUM(total_harga) FILTER (WHERE dibuat_pada::date >= ?), 0) AS periode_ini,
+        COALESCE(SUM(total_harga) FILTER (WHERE dibuat_pada::date >= ? AND dibuat_pada::date < ?), 0) AS periode_lalu
+     FROM pesanan
+     WHERE dibuat_pada::date >= ?"
+);
+$mulai7 = date('Y-m-d', strtotime('-6 days'));
+$mulai14 = date('Y-m-d', strtotime('-13 days'));
+$stmtTren->execute([$mulai7, $mulai14, $mulai7, $mulai14]);
+$tren = $stmtTren->fetch(PDO::FETCH_ASSOC) ?: ['periode_ini' => 0, 'periode_lalu' => 0];
+$omzet7Ini = (float) $tren['periode_ini'];
+$omzet7Lalu = (float) $tren['periode_lalu'];
+if ($omzet7Lalu > 0) {
+    $persenTren = round((($omzet7Ini - $omzet7Lalu) / $omzet7Lalu) * 100);
+} else {
+    $persenTren = $omzet7Ini > 0 ? 100 : 0;
+}
+$trenNaik = $persenTren >= 0;
+
+// ---------- Grafik 1: pendapatan 14 hari terakhir ----------
+$stmtGrafikTgl = $koneksi->prepare(
+    "SELECT dibuat_pada::date AS tgl, SUM(total_harga) AS omzet
+     FROM pesanan
+     WHERE dibuat_pada::date >= ?
+     GROUP BY tgl ORDER BY tgl"
+);
+$stmtGrafikTgl->execute([$mulai14]);
+$omzetPerTanggal = [];
+foreach ($stmtGrafikTgl->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $omzetPerTanggal[$row['tgl']] = (float) $row['omzet'];
+}
+$labelGrafikTanggal = [];
+$dataGrafikTanggal = [];
+for ($i = 13; $i >= 0; $i--) {
+    $tgl = date('Y-m-d', strtotime("-$i days"));
+    $labelGrafikTanggal[] = date('d/m', strtotime($tgl));
+    $dataGrafikTanggal[] = $omzetPerTanggal[$tgl] ?? 0;
+}
+$omzet14Hari = array_sum($dataGrafikTanggal);
+
+// ---------- Grafik 2: 5 produk paling banyak terjual ----------
+$stmtGrafikProduk = $koneksi->query(
+    "SELECT nama_produk, SUM(jumlah) AS total_terjual
+     FROM detail_pesanan
+     GROUP BY nama_produk
+     ORDER BY total_terjual DESC
+     LIMIT 5"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+// ---------- Grafik 3: komposisi pendapatan per metode pembayaran ----------
+$stmtGrafikMetode = $koneksi->query(
+    "SELECT split_part(metode_pembayaran, ' - ', 1) AS metode, SUM(total_harga) AS omzet
+     FROM pesanan
+     GROUP BY metode
+     ORDER BY omzet DESC"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+// ==================== Helper murni PHP untuk gambar grafik (SVG/CSS, tanpa library luar) ====================
+
+function fmtSingkat($n): string
+{
+    $n = (float) $n;
+    if ($n >= 1000000) return rtrim(rtrim(number_format($n / 1000000, 1, ',', '.'), '0'), ',') . 'jt';
+    if ($n >= 1000) return round($n / 1000) . 'rb';
+    return (string) round($n);
+}
+
+/** Grafik area pendapatan (SVG), tanpa dependensi apa pun. */
+function renderGrafikArea(array $label, array $data): void
+{
+    $n = count($data);
+    if ($n < 2) { echo '<div class="dash-grafik-kosong">Data belum cukup untuk ditampilkan.</div>'; return; }
+
+    $lebar = 700; $tinggi = 230;
+    $padKiri = 44; $padKanan = 16; $padAtas = 18; $padBawah = 34;
+    $areaW = $lebar - $padKiri - $padKanan;
+    $areaH = $tinggi - $padAtas - $padBawah;
+    $maks = max($data); if ($maks <= 0) $maks = 1;
+
+    $titik = [];
+    for ($i = 0; $i < $n; $i++) {
+        $x = $padKiri + ($areaW * $i / ($n - 1));
+        $y = $padAtas + $areaH - ($data[$i] / $maks * $areaH);
+        $titik[] = [round($x, 1), round($y, 1)];
+    }
+
+    $garis = 'M' . $titik[0][0] . ',' . $titik[0][1];
+    foreach (array_slice($titik, 1) as $t) $garis .= ' L' . $t[0] . ',' . $t[1];
+    $area = $garis . " L{$titik[$n-1][0]}," . ($padAtas + $areaH) . " L{$titik[0][0]}," . ($padAtas + $areaH) . ' Z';
+
+    $baseY = $padAtas + $areaH;
+    ?>
+    <svg viewBox="0 0 <?= $lebar ?> <?= $tinggi ?>" class="dash-svg-chart" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="gradPendapatan" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#B9862F" stop-opacity="0.32"/>
+          <stop offset="100%" stop-color="#B9862F" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <?php for ($g = 0; $g <= 2; $g++):
+        $gy = round($padAtas + $areaH * $g / 2, 1);
+        $gv = fmtSingkat($maks - ($maks * $g / 2)); ?>
+        <line x1="<?= $padKiri ?>" y1="<?= $gy ?>" x2="<?= $lebar - $padKanan ?>" y2="<?= $gy ?>" class="dash-svg-grid"/>
+        <text x="2" y="<?= $gy + 4 ?>" class="dash-svg-label-y">Rp<?= $gv ?></text>
+      <?php endfor; ?>
+      <path d="<?= $area ?>" fill="url(#gradPendapatan)"/>
+      <path d="<?= $garis ?>" fill="none" class="dash-svg-line"/>
+      <?php foreach ($titik as $i => $t):
+        $terakhir = $i === $n - 1; ?>
+        <circle cx="<?= $t[0] ?>" cy="<?= $t[1] ?>" r="<?= $terakhir ? 5 : 3 ?>" class="dash-svg-dot<?= $terakhir ? ' dash-svg-dot-aktif' : '' ?>">
+          <title><?= $label[$i] ?>: Rp <?= number_format($data[$i], 0, ',', '.') ?></title>
+        </circle>
+        <?php if ($i % 2 === 0 || $terakhir): ?>
+          <text x="<?= $t[0] ?>" y="<?= $baseY + 20 ?>" class="dash-svg-label-x"><?= $label[$i] ?></text>
+        <?php endif; ?>
+      <?php endforeach; ?>
+    </svg>
+    <?php
+}
+
+/** Bar chart horizontal murni CSS/HTML untuk produk terlaris. */
+function renderGrafikBar(array $rows): void
+{
+    if (empty($rows)) { echo '<div class="dash-grafik-kosong">Belum ada produk terjual untuk ditampilkan.</div>'; return; }
+    $maks = max(array_column($rows, 'total_terjual')) ?: 1;
+    foreach ($rows as $row):
+        $persen = max(6, round($row['total_terjual'] / $maks * 100));
+        ?>
+        <div class="dash-bar-row">
+          <span class="dash-bar-label"><?= htmlspecialchars($row['nama_produk']) ?></span>
+          <div class="dash-bar-track">
+            <div class="dash-bar-fill" style="width:<?= $persen ?>%;"></div>
+          </div>
+          <span class="dash-bar-nilai"><?= (int) $row['total_terjual'] ?></span>
+        </div>
+    <?php endforeach;
+}
+
+/** Donat komposisi metode pembayaran, dibuat dengan conic-gradient CSS murni + legenda. */
+function renderGrafikDonat(array $rows): void
+{
+    if (empty($rows)) { echo '<div class="dash-grafik-kosong">Belum ada transaksi untuk ditampilkan.</div>'; return; }
+    $warna = ['#1F3A5A', '#B9862F', '#7A4B2A', '#5C8AA6', '#C97B4A', '#6B9E6F'];
+    $total = array_sum(array_column($rows, 'omzet')) ?: 1;
+
+    $stops = []; $kumulatif = 0;
+    foreach ($rows as $i => $row) {
+        $mulai = round($kumulatif / $total * 360, 2);
+        $kumulatif += $row['omzet'];
+        $selesai = round($kumulatif / $total * 360, 2);
+        $stops[] = ($warna[$i % count($warna)]) . ' ' . $mulai . 'deg ' . $selesai . 'deg';
+    }
+    $gradientCss = implode(', ', $stops);
+    ?>
+    <div class="dash-donat-wrap">
+      <div class="dash-donat" style="background: conic-gradient(<?= $gradientCss ?>);">
+        <div class="dash-donat-hole">
+          <span>Total</span>
+          <strong>Rp <?= fmtSingkat($total) ?></strong>
+        </div>
+      </div>
+      <ul class="dash-donat-legenda">
+        <?php foreach ($rows as $i => $row):
+          $persen = round($row['omzet'] / $total * 100); ?>
+          <li>
+            <span class="dash-donat-dot" style="background:<?= $warna[$i % count($warna)] ?>;"></span>
+            <span class="dash-donat-nama"><?= htmlspecialchars($row['metode']) ?></span>
+            <span class="dash-donat-persen"><?= $persen ?>%</span>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+    <?php
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -29,7 +213,7 @@ $produkList = $koneksi->query(
 </div>
 
 <div class="wrap admin-subnav">
-  <a href="dashboard.php" class="admin-subnav-aktif">Kelola Produk</a>
+  <a href="dashboard.php" class="admin-subnav-aktif">Dashboard</a>
   <a href="kategori.php">Kelola Kategori</a>
   <a href="pesanan.php">Pesanan Masuk</a>
   <a href="transaksi_baru.php">Transaksi Manual</a>
@@ -37,8 +221,114 @@ $produkList = $koneksi->query(
 </div>
 
 <div class="wrap" style="padding-top:24px; padding-bottom:60px;">
-  <div class="admin-toolbar">
-    <h2 class="section-title" style="margin:0;">Kelola Produk</h2>
+  <div class="dash-header">
+    <div>
+      <h2 class="section-title" style="margin:0;">Dashboard</h2>
+      <p class="dash-header-sub">Ringkasan performa toko Batik Kirana Nusantara hari ini, <?= date('d F Y') ?>.</p>
+    </div>
+  </div>
+
+  <div class="dash-kartu-grid">
+    <div class="dash-kartu dash-kartu-indigo">
+      <div class="dash-kartu-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 16l4-5 3 3 5-7 4 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="dash-kartu-body">
+        <span>Total Produk</span>
+        <strong><?= $totalProduk ?></strong>
+      </div>
+    </div>
+
+    <div class="dash-kartu dash-kartu-soga">
+      <div class="dash-kartu-icon">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="13" y="4" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="4" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/><rect x="13" y="13" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="2"/></svg>
+      </div>
+      <div class="dash-kartu-body">
+        <span>Total Kategori</span>
+        <strong><?= $totalKategoriDb ?></strong>
+      </div>
+    </div>
+
+    <div class="dash-kartu dash-kartu-gold">
+      <div class="dash-kartu-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 7h18M3 7v11a1 1 0 001 1h16a1 1 0 001-1V7M3 7l2-4h14l2 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="dash-kartu-body">
+        <span>Total Transaksi</span>
+        <strong><?= $totalTransaksiDb ?></strong>
+      </div>
+    </div>
+
+    <div class="dash-kartu dash-kartu-indigo dash-kartu-besar">
+      <div class="dash-kartu-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M17 6.5c0-2-2.2-3.5-5-3.5s-5 1.5-5 3.5 2.2 3.2 5 3.5c2.8.3 5 1.5 5 3.5s-2.2 3.5-5 3.5-5-1.5-5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="dash-kartu-body">
+        <span>Total Penjualan</span>
+        <strong>Rp <?= number_format($totalPenjualanDb, 0, ',', '.') ?></strong>
+        <div class="dash-kartu-tren <?= $trenNaik ? 'naik' : 'turun' ?>">
+          <svg viewBox="0 0 24 24" fill="none" width="13" height="13">
+            <?php if ($trenNaik): ?>
+              <path d="M5 15l7-7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <?php else: ?>
+              <path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <?php endif; ?>
+          </svg>
+          <span><?= abs($persenTren) ?>% vs 7 hari sebelumnya</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="dash-kartu dash-kartu-soga">
+      <div class="dash-kartu-icon">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M20 7H4a1 1 0 00-1 1v3a2 2 0 000 4v3a1 1 0 001 1h16a1 1 0 001-1v-3a2 2 0 000-4V8a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="dash-kartu-body">
+        <span>Total Barang Terjual</span>
+        <strong><?= $totalBarangTerjualDb ?> unit</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="dash-grafik-utama">
+    <div class="dash-grafik-utama-head">
+      <div>
+        <h4>Pendapatan 14 Hari Terakhir</h4>
+        <p>Total periode ini <strong>Rp <?= number_format($omzet14Hari, 0, ',', '.') ?></strong></p>
+      </div>
+      <div class="dash-kartu-tren <?= $trenNaik ? 'naik' : 'turun' ?> dash-tren-badge">
+        <svg viewBox="0 0 24 24" fill="none" width="13" height="13">
+          <?php if ($trenNaik): ?>
+            <path d="M5 15l7-7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <?php else: ?>
+            <path d="M5 9l7 7 7-7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <?php endif; ?>
+        </svg>
+        <span><?= abs($persenTren) ?>%</span>
+      </div>
+    </div>
+    <?php if ($totalTransaksiDb > 0): ?>
+      <?php renderGrafikArea($labelGrafikTanggal, $dataGrafikTanggal); ?>
+    <?php else: ?>
+      <div class="dash-grafik-kosong">Belum ada transaksi untuk ditampilkan.</div>
+    <?php endif; ?>
+  </div>
+
+  <div class="dash-grafik-grid">
+    <div class="dash-grafik-card">
+      <h4>Produk Paling Banyak Terjual</h4>
+      <div class="dash-bar-list">
+        <?php renderGrafikBar($stmtGrafikProduk); ?>
+      </div>
+    </div>
+    <div class="dash-grafik-card">
+      <h4>Komposisi Metode Pembayaran</h4>
+      <?php renderGrafikDonat($stmtGrafikMetode); ?>
+    </div>
+  </div>
+
+  <div class="admin-toolbar" style="margin-top:8px;">
+    <h3 class="dash-section-title" style="margin:0;">Kelola Produk</h3>
     <a href="tambah.php" class="btn btn-gold">+ Tambah Produk</a>
   </div>
 
@@ -87,7 +377,7 @@ $produkList = $koneksi->query(
           </tr>
         <?php endforeach; ?>
       <?php else: ?>
-        <tr><td colspan="6">Belum ada produk.</td></tr>
+        <tr><td colspan="7">Belum ada produk.</td></tr>
       <?php endif; ?>
     </tbody>
   </table>

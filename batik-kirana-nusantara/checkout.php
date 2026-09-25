@@ -2,6 +2,7 @@
 require __DIR__ . '/includes/db.php';
 require __DIR__ . '/includes/keranjang.php';
 require __DIR__ . '/includes/auth_pembeli.php';
+require __DIR__ . '/includes/metode_bayar.php';
 $base_url = '';
 $judul_halaman = 'Checkout';
 
@@ -30,7 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $telepon = trim($_POST['telepon'] ?? '');
         $alamat = trim($_POST['alamat'] ?? '');
     }
-    $metode = trim($_POST['metode_pembayaran'] ?? '');
+    $metodeUtama = trim($_POST['metode_pembayaran'] ?? '');
+    $metodeDetail = trim($_POST['metode_detail'] ?? '');
+    $metode = $metodeUtama;
 
     // ---------- Validasi form (wajib) ----------
     if ($nama === '' || $email === '' || $telepon === '' || $alamat === '' || $metode === '') {
@@ -39,8 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Format email tidak valid.';
     } elseif (!preg_match('/^[0-9+\-\s]{8,20}$/', $telepon)) {
         $error = 'Format nomor telepon tidak valid.';
-    } elseif (!in_array($metode, ['Transfer Bank', 'COD (Bayar di Tempat)', 'E-Wallet'], true)) {
+    } elseif (!in_array($metodeUtama, ['Transfer Bank', 'COD (Bayar di Tempat)', 'E-Wallet'], true)) {
         $error = 'Metode pembayaran tidak valid.';
+    } elseif (($metode = metode_gabung($metodeUtama, $metodeDetail)) === null) {
+        $error = 'Pilih bank / e-wallet yang akan dipakai untuk pembayaran.';
     } elseif (empty($keranjang['items'])) {
         $error = 'Keranjang belanja kamu kosong.';
     } else {
@@ -107,6 +112,7 @@ $val_email = $_POST['email'] ?? '';
 $val_telepon = $_POST['telepon'] ?? '';
 $val_alamat = $_POST['alamat'] ?? '';
 $val_metode = $_POST['metode_pembayaran'] ?? '';
+$val_metode_detail = $_POST['metode_detail'] ?? '';
 
 require __DIR__ . '/includes/header.php';
 ?>
@@ -211,6 +217,7 @@ require __DIR__ . '/includes/header.php';
             </select>
             <small class="form-error" id="error-metode_pembayaran"></small>
           </div>
+          <?php metode_render_sub('metode_pembayaran', $val_metode_detail); ?>
           <button type="submit" class="btn btn-gold">Buat Pesanan</button>
         </form>
 
@@ -313,6 +320,11 @@ require __DIR__ . '/includes/header.php';
 
     const metode = form.metode_pembayaran.value.trim();
     if (metode === '') tandaiSalah('metode_pembayaran', 'Pilih salah satu metode pembayaran.');
+    else if ((metode === 'Transfer Bank' || metode === 'E-Wallet') && form.metode_detail.value.trim() === '') {
+      const box = Array.from(document.querySelectorAll('.sub-metode')).find((b) => b.dataset.metode === metode);
+      const sel = box.querySelector('select');
+      tandaiSalah(sel.id, metode === 'Transfer Bank' ? 'Pilih bank yang akan dipakai.' : 'Pilih e-wallet yang akan dipakai.');
+    }
 
     if (!valid && fieldFokusPertama) {
       fieldFokusPertama.focus();
@@ -331,7 +343,8 @@ require __DIR__ . '/includes/header.php';
       document.getElementById('modal-telepon').textContent = form.telepon.value.trim();
       document.getElementById('modal-alamat').textContent = form.alamat.value.trim();
     }
-    document.getElementById('modal-metode').textContent = form.metode_pembayaran.value.trim();
+    const detail = form.metode_detail.value.trim();
+    document.getElementById('modal-metode').textContent = form.metode_pembayaran.value.trim() + (detail ? ' - ' + detail : '');
   };
 
   const bukaModal = () => {

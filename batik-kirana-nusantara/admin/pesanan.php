@@ -49,7 +49,7 @@ if ($idDetailLihat > 0) {
 </div>
 
 <div class="wrap admin-subnav">
-  <a href="dashboard.php">Kelola Produk</a>
+  <a href="dashboard.php">Dashboard</a>
   <a href="kategori.php">Kelola Kategori</a>
   <a href="pesanan.php" class="admin-subnav-aktif">Pesanan Masuk</a>
   <a href="transaksi_baru.php">Transaksi Manual</a>
@@ -70,7 +70,7 @@ if ($idDetailLihat > 0) {
   <table class="admin-table">
     <thead>
       <tr>
-        <th>Kode</th><th>Pelanggan</th><th>Telepon</th><th>Total</th><th>Status</th><th>Tanggal</th><th>Aksi</th>
+        <th>Kode</th><th>Pelanggan</th><th>Telepon</th><th>Total</th><th>Status</th><th>Tanggal</th><th>Aksi</th><th>Struk</th>
       </tr>
     </thead>
     <tbody>
@@ -94,10 +94,11 @@ if ($idDetailLihat > 0) {
             </td>
             <td><?= date('d/m/Y H:i', strtotime($p['dibuat_pada'])) ?></td>
             <td><a href="pesanan.php?lihat=<?= (int)$p['id_pesanan'] ?>#detail" class="link-edit">Lihat Item</a></td>
+            <td><a href="struk.php?id=<?= (int)$p['id_pesanan'] ?>" class="link-edit" target="_blank" rel="noopener">🖨 Cetak</a></td>
           </tr>
         <?php endforeach; ?>
       <?php else: ?>
-        <tr><td colspan="7">Belum ada pesanan masuk.</td></tr>
+        <tr><td colspan="8">Belum ada pesanan masuk.</td></tr>
       <?php endif; ?>
     </tbody>
   </table>

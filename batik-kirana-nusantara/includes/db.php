@@ -1,16 +1,4 @@
 <?php
-/**
- * Koneksi database PostgreSQL.
- *
- * PENTING (keamanan): kredensial di bawah ini SEBAIKNYA diisi lewat
- * environment variable di hosting (DB_HOST, DB_PORT, DB_NAME, DB_USER,
- * DB_PASS), bukan ditulis langsung di file ini. Nilai hardcode di bawah
- * hanya fallback supaya project tetap jalan kalau env var belum diatur.
- *
- * Karena password di bawah sempat tertulis polos di source code,
- * SEGERA GANTI password database ini dari dashboard Railway lalu
- * update juga nilainya di sini / di environment variable hosting.
- */
 
 $db_host = getenv('DB_HOST') ?: 'altaria.proxy.rlwy.net';
 $db_port = getenv('DB_PORT') ?: '35741';
