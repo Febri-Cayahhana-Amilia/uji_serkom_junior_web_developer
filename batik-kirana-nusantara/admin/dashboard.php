@@ -84,7 +84,7 @@ function fmtSingkat($n): string
     return (string) round($n);
 }
 
-/** Grafik area pendapatan (SVG), tanpa dependensi apa pun. */
+/** Grafik batang pendapatan (SVG), tanpa dependensi apa pun. */
 function renderGrafikArea(array $label, array $data): void
 {
     $n = count($data);
@@ -95,25 +95,17 @@ function renderGrafikArea(array $label, array $data): void
     $areaW = $lebar - $padKiri - $padKanan;
     $areaH = $tinggi - $padAtas - $padBawah;
     $maks = max($data); if ($maks <= 0) $maks = 1;
-
-    $titik = [];
-    for ($i = 0; $i < $n; $i++) {
-        $x = $padKiri + ($areaW * $i / ($n - 1));
-        $y = $padAtas + $areaH - ($data[$i] / $maks * $areaH);
-        $titik[] = [round($x, 1), round($y, 1)];
-    }
-
-    $garis = 'M' . $titik[0][0] . ',' . $titik[0][1];
-    foreach (array_slice($titik, 1) as $t) $garis .= ' L' . $t[0] . ',' . $t[1];
-    $area = $garis . " L{$titik[$n-1][0]}," . ($padAtas + $areaH) . " L{$titik[0][0]}," . ($padAtas + $areaH) . ' Z';
-
     $baseY = $padAtas + $areaH;
+
+    // lebar tiap slot & lebar batang (dengan jarak antar batang)
+    $slotW = $areaW / $n;
+    $barW = max(6, $slotW * 0.55);
     ?>
     <svg viewBox="0 0 <?= $lebar ?> <?= $tinggi ?>" class="dash-svg-chart" preserveAspectRatio="none">
       <defs>
         <linearGradient id="gradPendapatan" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#B9862F" stop-opacity="0.32"/>
-          <stop offset="100%" stop-color="#B9862F" stop-opacity="0"/>
+          <stop offset="0%" stop-color="#B9862F"/>
+          <stop offset="100%" stop-color="#D9A94F"/>
         </linearGradient>
       </defs>
       <?php for ($g = 0; $g <= 2; $g++):
@@ -122,17 +114,21 @@ function renderGrafikArea(array $label, array $data): void
         <line x1="<?= $padKiri ?>" y1="<?= $gy ?>" x2="<?= $lebar - $padKanan ?>" y2="<?= $gy ?>" class="dash-svg-grid"/>
         <text x="2" y="<?= $gy + 4 ?>" class="dash-svg-label-y">Rp<?= $gv ?></text>
       <?php endfor; ?>
-      <path d="<?= $area ?>" fill="url(#gradPendapatan)"/>
-      <path d="<?= $garis ?>" fill="none" class="dash-svg-line"/>
-      <?php foreach ($titik as $i => $t):
-        $terakhir = $i === $n - 1; ?>
-        <circle cx="<?= $t[0] ?>" cy="<?= $t[1] ?>" r="<?= $terakhir ? 5 : 3 ?>" class="dash-svg-dot<?= $terakhir ? ' dash-svg-dot-aktif' : '' ?>">
+      <?php for ($i = 0; $i < $n; $i++):
+        $terakhir = $i === $n - 1;
+        $tinggiBar = $data[$i] / $maks * $areaH;
+        $x = $padKiri + ($slotW * $i) + (($slotW - $barW) / 2);
+        $y = $baseY - $tinggiBar;
+        $xTengah = $x + ($barW / 2);
+        ?>
+        <rect x="<?= round($x, 1) ?>" y="<?= round($y, 1) ?>" width="<?= round($barW, 1) ?>" height="<?= round($tinggiBar, 1) ?>"
+              rx="3" fill="url(#gradPendapatan)" class="dash-svg-bar<?= $terakhir ? ' dash-svg-bar-aktif' : '' ?>">
           <title><?= $label[$i] ?>: Rp <?= number_format($data[$i], 0, ',', '.') ?></title>
-        </circle>
+        </rect>
         <?php if ($i % 2 === 0 || $terakhir): ?>
-          <text x="<?= $t[0] ?>" y="<?= $baseY + 20 ?>" class="dash-svg-label-x"><?= $label[$i] ?></text>
+          <text x="<?= round($xTengah, 1) ?>" y="<?= $baseY + 20 ?>" class="dash-svg-label-x"><?= $label[$i] ?></text>
         <?php endif; ?>
-      <?php endforeach; ?>
+      <?php endfor; ?>
     </svg>
     <?php
 }
@@ -307,6 +303,17 @@ function renderGrafikDonat(array $rows): void
   from { opacity: 0; transform: translateX(20px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+
+/* ==================== Diagram Batang Pendapatan ==================== */
+.dash-svg-bar {
+  transition: opacity 0.15s ease;
+}
+.dash-svg-bar:hover {
+  opacity: 0.8;
+}
+.dash-svg-bar-aktif {
+  filter: drop-shadow(0 0 2px rgba(185, 134, 47, 0.5));
+}
 </style>
 </head>
 <body class="admin-shell">
@@ -425,7 +432,7 @@ function renderGrafikDonat(array $rows): void
 
   <div class="dash-grafik-grid">
     <div class="dash-grafik-card">
-      <h4>Produk Paling Banyak Terjual</h4>
+      <h4>Kategori Paling Banyak Terjual</h4>
       <div class="dash-bar-list">
         <?php renderGrafikBar($stmtGrafikProduk); ?>
       </div>
